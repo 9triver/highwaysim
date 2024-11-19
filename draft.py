@@ -1,4 +1,4 @@
-from python_project.data_parser.data_parser import DataParser
+from python_project.data_parser.data_parser import RoadData
 
 if __name__ == "__main__":
-    DataParser().parse()
+    RoadData().parse()

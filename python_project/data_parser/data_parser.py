@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import pandas as pd
 
-from entity.Location import *
+from entity.location import TollPlaza, Gantry, Location
 
 
-class DataParser:
+class RoadData:
     class Util:
         @staticmethod
         def is_null_cell(cell: object) -> bool:
@@ -168,11 +168,11 @@ class DataParser:
                     h = h.strip()
                     if h in cls.hex_2_entrance:
                         tmp = cls.hex_2_entrance[h]
-                        tmp.downstream.append(gantry)
-                        gantry.upstream.append(tmp)
+                        tmp.downstream.append((gantry, 0))
+                        gantry.upstream.append((tmp, 0))
                     elif h in cls.hex_2_gantry:
                         tmp = cls.hex_2_gantry[h]
-                        gantry.upstream.append(tmp)
+                        gantry.upstream.append((tmp, 0))
 
             if not cls.Util.is_null_cell(down_hexs):
                 hexs: List[str] = down_hexs.split(r"|")
@@ -180,11 +180,11 @@ class DataParser:
                     h = h.strip()
                     if h in cls.hex_2_exit:
                         tmp = cls.hex_2_exit[h]
-                        tmp.upstream.append(gantry)
-                        gantry.downstream.append(tmp)
+                        tmp.upstream.append((gantry, 0))
+                        gantry.downstream.append((tmp, 0))
                     elif h in cls.hex_2_gantry:
                         tmp = cls.hex_2_gantry[h]
-                        gantry.downstream.append(tmp)
+                        gantry.downstream.append((tmp, 0))
 
     @classmethod
     def clean_invalid_entrances(cls) -> None:
@@ -211,6 +211,18 @@ class DataParser:
         for k, v in hex_2_count.items():
             cls.entry_prob.append((cls.hex_2_entrance[k], v / total_num))
 
+    @classmethod
+    def parse_next_gantry_prob(cls) -> None:
+        try:
+            df = pd.read_csv(
+                cls.RESOURCE_PATH
+                + rf"{cls.province}/statisticalData/driver_normal.csv",
+                dtype=str,
+            )
+        except FileNotFoundError:
+            pass
+        Location.enable_get_next_by_prob = True
+
 
 if __name__ == "__main__":
-    DataParser.parse()
+    RoadData.parse()
