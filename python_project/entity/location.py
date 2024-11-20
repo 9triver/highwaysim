@@ -4,7 +4,13 @@ import enum
 import random
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import List, Tuple, ClassVar, Optional
+from typing import List, ClassVar, Optional
+
+
+@dataclass
+class LocationWithProb:
+    l: Location
+    p: float
 
 
 @dataclass
@@ -15,21 +21,23 @@ class Location(ABC):
     hex_code: str = ""
     longitude: float = 0
     latitude: float = 0
-    upstream: List[Tuple[Location, float]] = field(default_factory=list)
-    downstream: List[Tuple[Location, float]] = field(default_factory=list)
+    upstream: List[Location] = field(default_factory=list)
+    # 对downstream的操作需要取第一个或任意一个元素,换用dict会比较麻烦
+    # 因为每个gantry的downstream不多,在parse数据时不使用dict影响不大
+    downstream: List[LocationWithProb] = field(default_factory=list)
 
     def get_next_location(self, enable_prob: bool = False) -> Optional[Location, None]:
         if len(self.downstream) == 0:
             return None
-        if enable_prob and self.enable_get_next_by_prob and self.downstream[0][1] != 0:
+        if enable_prob and self.enable_get_next_by_prob and self.downstream[0].p != 0:
             p = random.random()
             cnt = 0
             for lo, f in self.downstream:
                 cnt += f
                 if cnt > p:
                     return lo
-            return self.downstream[-1]
-        return self.downstream[random.randint(0, len(self.downstream) - 1)]
+            return self.downstream[-1].l
+        return random.choice(self.downstream).l
 
 
 @dataclass
