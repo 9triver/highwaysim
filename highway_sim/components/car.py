@@ -1,7 +1,6 @@
 import salabim as sim
 
 from config import fitting_data as fit
-from data_parser_and_holder.road import Road
 from entity.location import TollPlaza
 from util.distribution import gamma_distribution
 
@@ -9,8 +8,10 @@ from util.distribution import gamma_distribution
 class Car(sim.Component):
     MILLI = 1000
 
-    def setup(self):
-        self.location = Road.get_entrance_by_prob()
+    def setup(self, road, traffic):
+        self.road = road
+        self.traffic = traffic
+        self.location = self.road.get_entrance_by_prob()
 
     def process(self):
         if isinstance(self.location, TollPlaza):

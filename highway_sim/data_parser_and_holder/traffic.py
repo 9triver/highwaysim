@@ -8,20 +8,20 @@ from config import resources
 
 
 class Traffic:
-    hour_2_interval_ms: Dict[int, float]
+    def __init__(self):
+        self.hour_2_interval_ms: Dict[int, float] = {}
 
-    @classmethod
-    def parse(cls) -> None:
-        cls.__parse_traffic_distribution()
+    def parse(self) -> None:
+        self.__parse_traffic_distribution()
 
-    @classmethod
-    def __parse_traffic_distribution(cls) -> None:
+    def __parse_traffic_distribution(self) -> None:
         df = pd.read_csv(
             resources.RESOURCE_PATH
             + rf"{resources.PROVINCE}/statisticalData/hourly_traffic_distribution.csv",
             dtype=str,
+            na_filter=False,
         )
         for row in [x[1] for x in df.iterrows()]:
             hour = int(row.iloc[0])
             interval = float(row.iloc[2])
-            cls.hour_2_interval_ms[hour] = interval
+            self.hour_2_interval_ms[hour] = interval
