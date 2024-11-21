@@ -4,7 +4,7 @@ from typing import Dict
 
 import pandas as pd
 
-from config import resources
+from highway_sim.config import resources
 
 
 class Traffic:

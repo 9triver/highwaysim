@@ -1,8 +1,8 @@
 import salabim as sim
 from scipy.stats import uniform
 
-from components.car import Car
-from config import fitting_data as fit
+from highway_sim.components.car import Car
+from highway_sim.config import fitting_data as fit
 
 
 class CarGenerator(sim.Component):

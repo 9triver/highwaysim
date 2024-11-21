@@ -12,14 +12,15 @@ greenlet貌似因为在一个线程内,所以不用加锁
 from __future__ import annotations
 
 import random
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Set
 
 import pandas as pd
 
-from config import fitting_data as fit
-from config import resources
-from entity.location import TollPlaza, Gantry, Location, LocationWithProb
-from util import parser
+from highway_sim.config import fitting_data as fit
+from highway_sim.config import resources
+from highway_sim.entity import location
+from highway_sim.entity.location import TollPlaza, Gantry, Location, LocationWithProb
+from highway_sim.util import parser
 
 
 class Road:
@@ -29,7 +30,7 @@ class Road:
         self.hex_2_gantry: Dict[str, Gantry] = {}
         self.hex_2_entrance: Dict[str, TollPlaza] = {}
         self.entrances: List[TollPlaza] = []
-        self.valid_entrance_hex_list: List[str] = []
+        self.valid_entrance_hex_set: Set[str] = set()
         self.hex_2_exit: Dict[str, TollPlaza] = {}
         self.province_entrances: List[Gantry] = []
         self.entrances_with_prob: List[Tuple[TollPlaza, float]] = []
@@ -45,7 +46,7 @@ class Road:
         self.entrances = list(self.hex_2_entrance.values())
         self.__clean_invalid_entrances()
         for e in self.entrances:
-            self.valid_entrance_hex_list.append(e.hex_code)
+            self.valid_entrance_hex_set.add(e.hex_code)
         self.__calculate_entrance_prob()
         self.__parse_next_gantry_prob()
 
@@ -213,7 +214,7 @@ class Road:
         hex_2_count = {}
         for row in [x[1] for x in df.iterrows()]:
             h = row.iloc[0].strip()
-            if h in self.valid_entrance_hex_list:
+            if h in self.valid_entrance_hex_set:
                 num = int(row.iloc[2])
                 total_num += num
                 hex_2_count[h] = num + hex_2_count.get(h, 0)
@@ -222,17 +223,13 @@ class Road:
 
     def __parse_next_gantry_prob(self) -> None:
         # 文件中的hex_code都是gantry的
-        df = None
-        try:
-            df = pd.read_csv(
-                resources.RESOURCE_PATH
-                + rf"{resources.PROVINCE}/statisticalData/driver_normal.csv",
-                dtype=str,
-                na_filter=False,
-            )
-        except FileNotFoundError:
-            pass
-        Location.enable_get_next_by_prob = True
+        df = pd.read_csv(
+            resources.RESOURCE_PATH
+            + rf"{resources.PROVINCE}/statisticalData/driver_normal.csv",
+            dtype=str,
+            na_filter=False,
+        )
+        location.enable_get_next_by_prob = True
         for row in [x[1] for x in df.iterrows()]:
             up_hex = row.iloc[0].strip()
             down_hex = row.iloc[1].strip()
@@ -244,15 +241,11 @@ class Road:
 
     def get_entrance_by_prob(self) -> Location:
         if random.random() < fit.PROVINCE_ENTRANCE_RATION:
-            return self.province_entrances[
-                random.randint(0, len(self.province_entrances) - 1)
-            ]
+            return random.choice(self.province_entrances)
         p = random.random()
         cnt = 0
         for k, v in self.entrances_with_prob:
             cnt += v
             if cnt > p:
                 return k
-        return self.entrances_with_prob[
-            random.randint(0, len(self.entrances_with_prob) - 1)
-        ][0]
+        return random.choice(self.entrances_with_prob)[0]

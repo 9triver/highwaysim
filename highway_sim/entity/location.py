@@ -4,7 +4,7 @@ import enum
 import random
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import List, ClassVar, Optional
+from typing import List, Optional
 
 
 @dataclass
@@ -13,9 +13,11 @@ class LocationWithProb:
     p: float
 
 
+enable_get_next_by_prob: bool = False
+
+
 @dataclass(repr=False)
 class Location(ABC):
-    enable_get_next_by_prob: ClassVar[bool] = False
     name: str = ""
     id: str = ""
     hex_code: str = ""
@@ -30,14 +32,14 @@ class Location(ABC):
     def get_next_location(self, enable_prob: bool = False) -> Optional[Location, None]:
         if len(self.downstream) == 0:
             return None
-        if enable_prob and self.enable_get_next_by_prob and self.downstream[0].p != 0:
+        if enable_prob and enable_get_next_by_prob and self.downstream[0].p != 0:
             r = random.random()
             cnt = 0
             for lwp in self.downstream:
                 lo = lwp.l
                 p = lwp.p
                 cnt += p
-                if cnt > r:
+                if cnt >= r:
                     return lo
             return self.downstream[-1].l
         return random.choice(self.downstream).l
