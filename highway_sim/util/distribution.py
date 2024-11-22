@@ -4,8 +4,8 @@ distribution calculate util classes
 
 import math
 
-from scipy.stats import gamma
+import random
 
 
 def gamma_distribution(shape: float, scale: float, times: int) -> int:
-    return math.ceil(gamma.rvs(shape, scale) * times) + 1
+    return math.ceil(random.gammavariate(shape, 1 / scale) * times) + 1

@@ -248,4 +248,4 @@ class Road:
             cnt += v
             if cnt > p:
                 return k
-        return random.choice(self.entrances_with_prob)[0]
+        return (self.entrances_with_prob[-1])[0]
