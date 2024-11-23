@@ -21,7 +21,7 @@ class Car(sim.Component):
         self.location: Location = self.road.get_entrance_by_prob()
         self.gantry_num: int = 1
         self.start_time: float = self.env.now()
-        self.last_time: float = self.start_time
+        # self.last_time: float = self.start_time
 
     def process(self):
         stats_default.entry_hour_info(self.env.now(), logger)
@@ -33,29 +33,27 @@ class Car(sim.Component):
                 )
                 * common.SECOND_MILLISECOND
             )
-            self.last_time = self.env.now()
+            # self.last_time = self.env.now()
         else:
-            self.hold(
+            duration = (
                 gamma_distribution(
                     fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
                 )
                 * common.SECOND_MILLISECOND
             )
-            this_time = self.env.now()
-            stats_default.gantry_time_info(this_time, self.last_time, logger)
-            self.last_time = this_time
+            self.hold(duration)
+            stats_default.gantry_time_info(duration, logger)
         self.location = self.location.get_next_location(True)
         while len(self.location.downstream) > 0:
             self.gantry_num += 1
-            self.hold(
+            duration = (
                 gamma_distribution(
                     fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
                 )
                 * common.SECOND_MILLISECOND
             )
-            this_time = self.env.now()
-            stats_default.gantry_time_info(this_time, self.last_time, logger)
-            self.last_time = this_time
+            self.hold(duration)
+            stats_default.gantry_time_info(duration, logger)
             self.location = self.location.get_next_location(True)
         now = self.env.now()
         stats_default.num_passed_info(self.gantry_num, logger)

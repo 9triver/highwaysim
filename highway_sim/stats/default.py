@@ -34,15 +34,15 @@ def num_passed_info(num: int, logger: logging.Logger):
 
 
 def total_time_info(now_ms: float, last_ms: float, logger: logging.Logger):
-    duration = int(now_ms - last_ms)
+    duration = int((now_ms - last_ms) / common.SECOND_MILLISECOND)
     total_time_used.append(duration)
-    logger.debug("totalTime %d ms", duration)
+    logger.debug("totalTime %d s", duration)
 
 
-def gantry_time_info(now_ms: float, last_ms: float, logger: logging.Logger):
-    duration = int(now_ms - last_ms)
-    gantry_time_used.append(duration)
-    logger.debug("thisTime %d ms", duration)
+def gantry_time_info(duration: int, logger: logging.Logger):
+    d = int(duration / common.SECOND_MILLISECOND)
+    gantry_time_used.append(d)
+    logger.debug("thisTime %d s", d)
 
 
 def exit_hex_info(h: str, logger: logging.Logger):
@@ -56,10 +56,14 @@ def entry_hex_info(h: str, logger: logging.Logger):
 
 
 def record(logger: logging.Logger):
-    top_10_entry_hex = sorted(entry_hex_2_num, key=entry_hex_2_num.get, reverse=True)[
-        :10
-    ]
-    top_10_exit_hex = sorted(exit_hex_2_num, key=exit_hex_2_num.get, reverse=True)[:10]
+    top_10_entry_hex = {
+        k: entry_hex_2_num[k]
+        for k in sorted(entry_hex_2_num, key=entry_hex_2_num.get, reverse=True)[:10]
+    }
+    top_10_exit_hex = {
+        k: exit_hex_2_num[k]
+        for k in sorted(exit_hex_2_num, key=exit_hex_2_num.get, reverse=True)[:10]
+    }
     logger.info(top_10_entry_hex)
     logger.info(top_10_exit_hex)
     logger.info(gantry_time_used)
@@ -67,3 +71,4 @@ def record(logger: logging.Logger):
     logger.info(num_gantry_passed)
     logger.info(hour_2_entry_num)
     logger.info(hour_2_exit_num)
+    logger.info(sum(gantry_time_used) / len(gantry_time_used))

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import enum
+import logging
 import random
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -32,16 +35,22 @@ class Location(ABC):
     def get_next_location(self, enable_prob: bool = False) -> Optional[Location, None]:
         if len(self.downstream) == 0:
             return None
-        if enable_prob and enable_get_next_by_prob and self.downstream[0].p != 0:
-            r = random.random()
-            cnt = 0
-            for lwp in self.downstream:
-                lo = lwp.l
-                p = lwp.p
-                cnt += p
-                if cnt >= r:
-                    return lo
-            return self.downstream[-1].l
+        if not (enable_prob and enable_get_next_by_prob):
+            return random.choice(self.downstream).l
+        if len(self.hex_code) != 8:
+            logger.warning("%s %s", self.hex_code, hex(id(self)))
+            logger.warning({x.l.hex_code: x.p for x in self.downstream})
+        r = random.random()
+        cnt = 0
+        for lwp in self.downstream:
+            lo = lwp.l
+            p = lwp.p
+            cnt += p
+            if cnt >= r:
+                logger.warning("next with prob")
+                return lo
+        if len(self.hex_code) != 8:
+            logger.warning("next without prob")
         return random.choice(self.downstream).l
 
     def __repr__(self):

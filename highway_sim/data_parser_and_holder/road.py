@@ -7,10 +7,13 @@ greenlet貌似因为在一个线程内,所以不用加锁
 单例模式对greenlet没用,因为greenlet会清楚类变量,而单例模式_instance要用类变量
 所以尽量不要使用类变量
 每个 greenlet 有自己的 执行上下文（execution context），这个上下文包括栈、局部变量、寄存器等与协程执行相关的状态
+
+gantry.xlxs里面有重复数据,需要删除,否则导致出现多个hex相同但id不同的对象
 """
 
 from __future__ import annotations
 
+import logging
 import random
 from typing import Dict, Tuple, List, Set
 
@@ -21,6 +24,8 @@ from highway_sim.config import resources
 from highway_sim.entity import location
 from highway_sim.entity.location import TollPlaza, Gantry, Location, LocationWithProb
 from highway_sim.util import parser
+
+logger = logging.getLogger(__name__)
 
 
 class Road:
@@ -76,6 +81,9 @@ class Road:
                     else Gantry.Type.COMMON
                 )
             )
+            # 收费站id不会相同,但是hex会
+            if hex_code in self.hex_2_gantry:
+                print(hex_code)
             gantry = Gantry(
                 name=name,
                 id=id_str,
@@ -85,7 +93,6 @@ class Road:
                 hex_code_of_reverse_gantry=hex_code_of_reverse_gantry,
                 gantry_type=gantry_type,
             )
-
             if gantry_type == Gantry.Type.PROVINCE_ENTRANCE:
                 self.province_entrances.append(gantry)
             self.id_2_gantry[id_str] = gantry
@@ -128,6 +135,8 @@ class Road:
                 )
 
     def __add_2_hex_2_entrance(self, n, i, lo, la, h, g) -> None:
+        if h in self.hex_2_entrance:
+            print("entry" + h)
         t = TollPlaza.Type.ENTRANCE
         tp = TollPlaza(
             name=n,
@@ -141,6 +150,8 @@ class Road:
         self.hex_2_entrance[h] = tp
 
     def __add_2_hex_2_exit(self, n, i, lo, la, h, g) -> None:
+        if h in self.hex_2_exit:
+            print("exit" + h)
         t = TollPlaza.Type.EXIT
         tp = TollPlaza(
             name=n,
@@ -198,12 +209,16 @@ class Road:
                         gantry.downstream.append(LocationWithProb(tmp, 0))
 
     def __clean_invalid_entrances(self) -> None:
+        """
+        verified
+        """
         self.province_entrances = [
             x for x in self.province_entrances if len(x.downstream) > 0
         ]
         self.entrances = [x for x in self.entrances if len(x.downstream) > 0]
 
     def __calculate_entrance_prob(self) -> None:
+        # verified
         df = pd.read_csv(
             resources.RESOURCE_PATH
             + rf"{resources.PROVINCE}/statisticalData/hourly_entry_count.csv",
@@ -220,9 +235,20 @@ class Road:
                 hex_2_count[h] = num + hex_2_count.get(h, 0)
         for k, v in hex_2_count.items():
             self.entrances_with_prob.append((self.hex_2_entrance[k], v / total_num))
+        logger.debug(
+            {
+                x[0].hex_code: x[1]
+                for x in sorted(
+                    self.entrances_with_prob,
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
+            }
+        )
 
     def __parse_next_gantry_prob(self) -> None:
         # 文件中的hex_code都是gantry的
+        # verified
         df = pd.read_csv(
             resources.RESOURCE_PATH
             + rf"{resources.PROVINCE}/statisticalData/driver_normal.csv",
@@ -238,8 +264,12 @@ class Road:
             for lwp in up.downstream:
                 if lwp.l.hex_code == down_hex:
                     lwp.p = p
+                    break
 
     def get_entrance_by_prob(self) -> Location:
+        """
+        verified
+        """
         if random.random() < fit.PROVINCE_ENTRANCE_RATION:
             return random.choice(self.province_entrances)
         p = random.random()
@@ -248,4 +278,4 @@ class Road:
             cnt += v
             if cnt > p:
                 return k
-        return (self.entrances_with_prob[-1])[0]
+        return random.choice(self.entrances_with_prob)[0]
