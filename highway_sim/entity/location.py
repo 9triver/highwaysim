@@ -37,20 +37,21 @@ class Location(ABC):
             return None
         if not (enable_prob and enable_get_next_by_prob):
             return random.choice(self.downstream).l
-        if len(self.hex_code) != 8:
-            logger.warning("%s %s", self.hex_code, hex(id(self)))
-            logger.warning({x.l.hex_code: x.p for x in self.downstream})
+        # if len(self.hex_code) != 8:
+        #     logger.warning("%s %s", self.hex_code, hex(id(self)))
+        #     logger.warning({x.l.hex_code: x.p for x in self.downstream})
         r = random.random()
-        cnt = 0
+        cnt: float = 0.0
         for lwp in self.downstream:
             lo = lwp.l
             p = lwp.p
+            # logger.warning("%s %f", lo.hex_code, p)
             cnt += p
             if cnt >= r:
-                logger.warning("next with prob")
+                # logger.warning("next with prob %f %f", cnt, r)
                 return lo
-        if len(self.hex_code) != 8:
-            logger.warning("next without prob")
+        # if len(self.hex_code) != 8:
+        #     logger.warning("next without prob")
         return random.choice(self.downstream).l
 
     def __repr__(self):

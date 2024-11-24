@@ -21,11 +21,9 @@ class Car(sim.Component):
         self.location: Location = self.road.get_entrance_by_prob()
         self.gantry_num: int = 1
         self.start_time: float = self.env.now()
-        # self.last_time: float = self.start_time
 
     def process(self):
         stats_default.entry_hour_info(self.env.now(), logger)
-        stats_default.entry_hex_info(self.location.hex_code, logger)
         if isinstance(self.location, TollPlaza):
             self.hold(
                 gamma_distribution(
@@ -33,7 +31,6 @@ class Car(sim.Component):
                 )
                 * common.SECOND_MILLISECOND
             )
-            # self.last_time = self.env.now()
         else:
             duration = (
                 gamma_distribution(

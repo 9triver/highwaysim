@@ -1,6 +1,5 @@
 """
-应当拆分,道路信息和流量信息已经揉到一起了
-parser和holder也应当拆分?
+应当拆分?
 注意,及时read_excel 设置dtype = str,遇到空值还是会转换为float(NaN),需要设置na_filter=False
 greenlet可以共享全局变量和实例,但是不能共享类变量,这是为什么呢
 greenlet貌似因为在一个线程内,所以不用加锁
@@ -23,6 +22,7 @@ from highway_sim.config import fitting_data as fit
 from highway_sim.config import resources
 from highway_sim.entity import location
 from highway_sim.entity.location import TollPlaza, Gantry, Location, LocationWithProb
+from highway_sim.stats import default as stats_default
 from highway_sim.util import parser
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ class Road:
         self.hex_2_exit: Dict[str, TollPlaza] = {}
         self.province_entrances: List[Gantry] = []
         self.entrances_with_prob: List[Tuple[TollPlaza, float]] = []
+        self.entrances_all: int = 0
 
     ENTRANCE_INDEX = 7
     ENTRANCE_NAME = "省界入口"
@@ -83,7 +84,8 @@ class Road:
             )
             # 收费站id不会相同,但是hex会
             if hex_code in self.hex_2_gantry:
-                print(hex_code)
+                self.id_2_gantry[id_str] = self.hex_2_gantry[hex_code]
+                continue
             gantry = Gantry(
                 name=name,
                 id=id_str,
@@ -135,8 +137,6 @@ class Road:
                 )
 
     def __add_2_hex_2_entrance(self, n, i, lo, la, h, g) -> None:
-        if h in self.hex_2_entrance:
-            print("entry" + h)
         t = TollPlaza.Type.ENTRANCE
         tp = TollPlaza(
             name=n,
@@ -150,8 +150,6 @@ class Road:
         self.hex_2_entrance[h] = tp
 
     def __add_2_hex_2_exit(self, n, i, lo, la, h, g) -> None:
-        if h in self.hex_2_exit:
-            print("exit" + h)
         t = TollPlaza.Type.EXIT
         tp = TollPlaza(
             name=n,
@@ -225,26 +223,27 @@ class Road:
             dtype=str,
             na_filter=False,
         )
-        total_num = 0
         hex_2_count = {}
         for row in [x[1] for x in df.iterrows()]:
             h = row.iloc[0].strip()
             if h in self.valid_entrance_hex_set:
                 num = int(row.iloc[2])
-                total_num += num
+                self.entrances_all += num
                 hex_2_count[h] = num + hex_2_count.get(h, 0)
         for k, v in hex_2_count.items():
-            self.entrances_with_prob.append((self.hex_2_entrance[k], v / total_num))
-        logger.debug(
-            {
-                x[0].hex_code: x[1]
-                for x in sorted(
-                    self.entrances_with_prob,
-                    key=lambda x: x[1],
-                    reverse=True,
-                )
-            }
-        )
+            self.entrances_with_prob.append(
+                (self.hex_2_entrance[k], v / self.entrances_all)
+            )
+        # need sort?
+        self.entrances_with_prob = [
+            (x[0], x[1])
+            for x in sorted(
+                self.entrances_with_prob,
+                key=lambda x: x[1],
+                reverse=True,
+            )
+        ]
+        logger.info({x[0].hex_code: x[1] for x in self.entrances_with_prob})
 
     def __parse_next_gantry_prob(self) -> None:
         # 文件中的hex_code都是gantry的
@@ -263,12 +262,12 @@ class Road:
             up = self.hex_2_gantry[up_hex]
             for lwp in up.downstream:
                 if lwp.l.hex_code == down_hex:
-                    lwp.p = p
+                    lwp.p = float(p)
                     break
 
     def get_entrance_by_prob(self) -> Location:
         """
-        verified
+        实在不知道是哪错了我觉得是python的问题
         """
         if random.random() < fit.PROVINCE_ENTRANCE_RATION:
             return random.choice(self.province_entrances)
@@ -277,5 +276,6 @@ class Road:
         for k, v in self.entrances_with_prob:
             cnt += v
             if cnt > p:
+                stats_default.entry_hex_info(k.hex_code, logger)
                 return k
-        return random.choice(self.entrances_with_prob)[0]
+        return random.choice(self.province_entrances)
