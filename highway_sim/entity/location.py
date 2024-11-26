@@ -45,7 +45,8 @@ class Location(ABC):
         for lwp in self.downstream:
             lo = lwp.l
             p = lwp.p
-            # logger.warning("%s %f", lo.hex_code, p)
+            # if len(self.hex_code) != 8:
+            #     logger.warning("%s %f", lo.hex_code, p)
             cnt += p
             if cnt >= r:
                 # logger.warning("next with prob %f %f", cnt, r)

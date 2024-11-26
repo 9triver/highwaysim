@@ -234,16 +234,6 @@ class Road:
             self.entrances_with_prob.append(
                 (self.hex_2_entrance[k], v / self.entrances_all)
             )
-        # need sort?
-        self.entrances_with_prob = [
-            (x[0], x[1])
-            for x in sorted(
-                self.entrances_with_prob,
-                key=lambda x: x[1],
-                reverse=True,
-            )
-        ]
-        logger.info({x[0].hex_code: x[1] for x in self.entrances_with_prob})
 
     def __parse_next_gantry_prob(self) -> None:
         # 文件中的hex_code都是gantry的
@@ -266,9 +256,6 @@ class Road:
                     break
 
     def get_entrance_by_prob(self) -> Location:
-        """
-        实在不知道是哪错了我觉得是python的问题
-        """
         if random.random() < fit.PROVINCE_ENTRANCE_RATION:
             return random.choice(self.province_entrances)
         p = random.random()

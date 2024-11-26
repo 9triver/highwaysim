@@ -51,7 +51,7 @@ def exit_hex_info(h: str, logger: logging.Logger):
 
 
 def entry_hex_info(h: str, logger: logging.Logger):
-    entry_hex_2_num[h] = exit_hex_2_num.get(h, 0) + 1
+    entry_hex_2_num[h] = entry_hex_2_num.get(h, 0) + 1
     logger.debug("enterHex %s", h)
 
 
