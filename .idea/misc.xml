@@ -4,7 +4,7 @@
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
     <option name="pathToExecutable" value="$USER_HOME$/.local/bin/black" />
-    <option name="sdkName" value="simulation" />
+    <option name="sdkName" value="sim" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (python_project)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="sim" project-jdk-type="Python SDK" />
 </project>

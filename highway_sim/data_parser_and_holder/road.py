@@ -1,9 +1,9 @@
 """
 应当拆分?
-注意,及时read_excel 设置dtype = str,遇到空值还是会转换为float(NaN),需要设置na_filter=False
+注意,即使read_excel 设置dtype = str,遇到空值还是会转换为float(NaN),需要设置na_filter=False
 greenlet可以共享全局变量和实例,但是不能共享类变量,这是为什么呢
 greenlet貌似因为在一个线程内,所以不用加锁
-单例模式对greenlet没用,因为greenlet会清楚类变量,而单例模式_instance要用类变量
+单例模式对greenlet没用,因为greenlet会清除类变量,而单例模式_instance要用类变量
 所以尽量不要使用类变量
 每个 greenlet 有自己的 执行上下文（execution context），这个上下文包括栈、局部变量、寄存器等与协程执行相关的状态
 
@@ -165,7 +165,7 @@ class Road:
     def __parse_relation(self) -> None:
         """
         上下游hex中可能出现门架和收费站的hex, 但是id只会出现门架的id
-        若上下游hex中出现收费站hex,则门架id必是改收费站承载门架的id?
+        若上下游hex中出现收费站hex,则门架id必是该收费站承载门架的id?
         如果是这样感觉可以在parse_toll_plaza处理收费站上下游关系
         """
         df = pd.read_excel(
