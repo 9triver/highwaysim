@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('TkAgg')  # 或者 'Agg', 'Qt5Agg', 'Qt4Agg', 'GTK3Agg', 等等
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
