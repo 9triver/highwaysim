@@ -1,7 +1,9 @@
 import logging
 import time
 
-import salabim as sim
+import mySalabim_tkEnhanced as sim
+
+# import salabim as sim
 
 from highway_sim.components.car_generator import CarGenerator
 from highway_sim.config import common
@@ -33,8 +35,22 @@ traffic.parse()
 env = sim.Environment(random_seed="*", time_unit="milliseconds")
 CarGenerator(road=road, traffic=traffic)
 
-env.run(common.DAY_MILLISECOND * 1)
-env.speed(0)
+env.position((1000 + 10, 0))
+env.width(2000)
+env.height(2000)
+
+env.x0(0)
+env.y0(0)
+env.x1(10000)
+
+env.video_close()
+env.show_fps(True)
+env.show_time(True)
+env.show_menu_buttons(True)
+env.animate(True)
+env.speed(10000)
+
+env.run(common.DAY_MILLISECOND * 0.1)
 
 end_time = time.time()
 logger.info("spend %fs", end_time - start_time)

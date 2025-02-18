@@ -40,6 +40,11 @@ class Road:
         self.province_entrances: List[Gantry] = []
         self.entrances_with_prob: List[Tuple[TollPlaza, float]] = []
         self.entrances_all: int = 0
+        self.min_latitude = 90
+        self.max_latitude = -90
+        self.min_longitude = 180
+        self.max_longitude = -180
+        self.scale_factor = 1.0
 
     ENTRANCE_INDEX = 7
     ENTRANCE_NAME = "省界入口"
@@ -55,6 +60,12 @@ class Road:
             self.valid_entrance_hex_set.add(e.hex_code)
         self.__calculate_entrance_prob()
         self.__parse_next_gantry_prob()
+        gantries = list(self.hex_2_gantry.values())
+        for g in gantries:
+            self.min_latitude = min(self.min_latitude, g.latitude)
+            self.max_latitude = max(self.max_latitude, g.latitude)
+            self.min_longitude = min(self.min_longitude, g.longitude)
+            self.max_longitude = max(self.max_longitude, g.longitude)
 
     def __parse_gantry_information(self) -> None:
         """
@@ -266,3 +277,19 @@ class Road:
                 stats_default.entry_hex_info(k.hex_code, logger)
                 return k
         return random.choice(self.province_entrances)
+
+    def lon2x(self, lon: float, resolution) -> float:
+        return (
+            (lon - self.min_longitude)
+            / (self.max_longitude - self.min_longitude)
+            * resolution
+        ) * self.scale_factor
+
+    def lat2y(self, lat: float, resolution) -> float:
+        return (
+            (
+                (lat - self.min_latitude)
+                / (self.max_longitude - self.min_longitude)
+                * resolution
+            )
+        ) * self.scale_factor

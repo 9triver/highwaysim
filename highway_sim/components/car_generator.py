@@ -1,6 +1,11 @@
 import random
 
-import salabim as sim
+import sys
+
+sys.path.append("..")
+import mySalabim_tkEnhanced as sim
+
+# import salabim as sim
 
 from highway_sim.components.car import Car
 from highway_sim.config import common
