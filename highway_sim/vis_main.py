@@ -36,17 +36,16 @@ traffic = Traffic()
 road.parse()
 traffic.parse()
 
-gantries = list(road.hex_2_gantry.values())
-gantry_num = len(gantries)
-min_latitude = 90
-max_latitude = -90
-min_longitude = 180
-max_longitude = -180
-for g in gantries:
-    min_latitude = min(min_latitude, g.latitude)
-    max_latitude = max(max_latitude, g.latitude)
-    min_longitude = min(min_longitude, g.longitude)
-    max_longitude = max(max_longitude, g.longitude)
+# gantries = list(road.hex_2_gantry.values())
+# min_latitude = 90
+# max_latitude = -90
+# min_longitude = 180
+# max_longitude = -180
+# for g in gantries:
+#     min_latitude = min(min_latitude, g.latitude)
+#     max_latitude = max(max_latitude, g.latitude)
+#     min_longitude = min(min_longitude, g.longitude)
+#     max_longitude = max(max_longitude, g.longitude)
 
 
 # handler
@@ -104,11 +103,15 @@ def deal_cv_right_release(event):
 
 # common func
 def lon2x(lon: float) -> float:
-    return (lon - min_longitude) / (max_longitude - min_longitude) * g_width
+    return (
+        (lon - road.min_longitude) / (road.max_longitude - road.min_longitude) * g_width
+    )
 
 
 def lat2y(lat: float) -> float:
-    return g_height - ((lat - min_latitude) / (max_longitude - min_longitude) * g_width)
+    return g_height - (
+        (lat - road.min_latitude) / (road.max_longitude - road.min_longitude) * g_width
+    )
 
 
 def draw_map():
@@ -152,12 +155,28 @@ g_cv.bind("<Button-1>", deal_cv_left_press)
 g_cv.bind("<B1-Motion>", deal_cv_left_motion)
 g_cv.bind("<Button-3>", deal_cv_right_press)
 g_cv.bind("<ButtonRelease-3>", deal_cv_right_release)
+
+
+def bob(event):
+    global g_cv, g_origin_pos, g_origin
+    tmp = g_cv.coords(g_origin)
+    g_origin_pos.x = tmp[0]
+    g_origin_pos.y = tmp[1]
+    g_cv.tag_lower(
+        g_cv.create_oval(
+            g_origin_pos.x + g_width / 2 * g_scale_factor,
+            g_origin_pos.y + g_height / 2 * g_scale_factor,
+            g_origin_pos.x + (g_width / 2 + 100) * g_scale_factor,
+            g_origin_pos.y + (g_height / 2 + 100) * g_scale_factor,
+            fill="green",
+        )
+    )
+
+
 g_cv.tag_bind(
     circle,
     "<Button-1>",
-    lambda event: g_cv.create_oval(
-        g_width / 2, g_height / 2, g_width / 2 + 100, g_height / 2 + 100, fill="green"
-    ),
+    bob,
 )
 
 g_cv.pack(fill="both", expand=True)
