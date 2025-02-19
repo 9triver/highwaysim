@@ -12629,6 +12629,10 @@ class Environment:
                             g.drag_start_pos_x = event.x
                             g.drag_start_pos_y = event.y
 
+                        def deal_root_configure(event):
+                            self._height = event.height
+                            self._width = event.width
+
                         g.origin_point = g.canvas.create_oval(
                             0, 0, 0, 0, fill="white", outline="white"
                         )
@@ -12636,6 +12640,7 @@ class Environment:
                         g.canvas.bind("<Button-5>", deal_cv_scroll_down)
                         g.canvas.bind("<Button-1>", deal_cv_left_press)
                         g.canvas.bind("<B1-Motion>", deal_cv_left_motion)
+                        g.canvas.bind("<Configure>", deal_root_configure)
 
                         g.canvas.pack(fill="both", expand=True)
 
@@ -16593,6 +16598,8 @@ class Animate2dBase(DynamicClass):
                             angle,
                             self.screen_coordinates,
                             g.scale_factor,
+                            self.env._width,
+                            self.env._height,
                         )
                     elif self.type == "line":
                         as_points = self.as_points(t)
@@ -16606,6 +16613,8 @@ class Animate2dBase(DynamicClass):
                             angle,
                             self.screen_coordinates,
                             g.scale_factor,
+                            self.env._width,
+                            self.env._height,
                         )
                     elif self.type == "polygon":
                         as_points = self.as_points(t)
@@ -16619,6 +16628,8 @@ class Animate2dBase(DynamicClass):
                             angle,
                             self.screen_coordinates,
                             g.scale_factor,
+                            self.env._width,
+                            self.env._height,
                         )
                     elif self.type == "circle":
                         as_points = False
@@ -16642,6 +16653,8 @@ class Animate2dBase(DynamicClass):
                             angle,
                             self.screen_coordinates,
                             g.scale_factor,
+                            self.env._width,
+                            self.env._height,
                         )
 
                     if self._image_ident != self._image_ident_prev:
@@ -16972,6 +16985,8 @@ class Animate2dBase(DynamicClass):
                         flip_horizontal,
                         flip_vertical,
                         g.scale_factor,
+                        self.env._width,
+                        self.env._height,
                     )
 
                     if self._image_ident != self._image_ident_prev:
@@ -17089,6 +17104,8 @@ class Animate2dBase(DynamicClass):
                         textcolor,
                         max_lines,
                         g.scale_factor,
+                        self.env._width,
+                        self.env._height,
                     )
                     if self._image_ident != self._image_ident_prev:
                         font, heightA = getfont(fontname, fontsize)

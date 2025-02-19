@@ -12629,13 +12629,18 @@ class Environment:
                             g.drag_start_pos_x = event.x
                             g.drag_start_pos_y = event.y
 
+                        def deal_root_configure(event):
+                            self._height = event.height
+                            self._width = event.width
+
                         g.origin_point = g.canvas.create_oval(
-                            0, 0, 0, 0, fill="white", outline="white"
+                            0, 0, 0, 0, fill="black", outline="black"
                         )
                         g.canvas.bind("<Button-4>", deal_cv_scroll_up)
                         g.canvas.bind("<Button-5>", deal_cv_scroll_down)
                         g.canvas.bind("<Button-1>", deal_cv_left_press)
                         g.canvas.bind("<B1-Motion>", deal_cv_left_motion)
+                        g.canvas.bind("<Configure>", deal_root_configure)
 
                         g.canvas.pack(fill="both", expand=True)
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import random
+import tkinter
 from typing import Dict, Tuple, List, Set
 
 import pandas as pd
@@ -293,3 +294,34 @@ class Road:
                 * resolution
             )
         ) * self.scale_factor
+
+    def draw_map(
+        self,
+        cv: tkinter.Canvas,
+        width,
+        window_height,
+        road_color="black",
+        create_oval=True,
+    ) -> None:
+        hex_drawn: Set[str] = set()
+
+        def draw_gantry(gantry: Location, prev: Location = None):
+            if gantry.hex_code in hex_drawn:
+                return
+
+            x = self.lon2x(gantry.longitude, width)
+            y = window_height - self.lat2y(gantry.latitude, width)
+            hex_drawn.add(gantry.hex_code)
+            if create_oval:
+                tag = cv.create_oval(x - 2, y - 2, x + 2, y + 2, fill="gray")
+                cv.tag_bind(tag, "<Button-1>", lambda event: print(gantry.name))
+            if prev:
+                x_prev = self.lon2x(prev.longitude, width)
+                y_prev = window_height - self.lat2y(prev.latitude, width)
+                cv.create_line(x_prev, y_prev, x, y, width=1, fill=road_color)
+            for e in gantry.downstream:
+                draw_gantry(e.l, gantry)
+
+        for entry in self.hex_2_entrance.values():
+            if entry.hex_code not in hex_drawn:
+                draw_gantry(entry)
