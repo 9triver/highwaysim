@@ -17,6 +17,8 @@ from highway_sim.util.distribution import gamma_distribution
 
 logger = logging.getLogger(__name__)
 
+ENABLE_3D = True
+
 
 class Car(sim.Component):
 
@@ -48,29 +50,25 @@ class Car(sim.Component):
             stats_default.gantry_time_info(duration, logger)
         self.prev_location = self.location
         self.location = self.location.get_next_location(True)
-        # x = self.road.lon2x(self.prev_location.longitude)
-        # y = self.road.lat2y(self.prev_location.latitude)
-        # slope = (self.location.latitude - self.prev_location.latitude) / (
-        #     self.location.longitude - self.prev_location.longitude
-        # )
-        # vx = (self.location.longitude - self.prev_location.longitude) / duration
         self.start_time = self.env.now()
 
+        time2x = lambda t: sim.interpolate(
+            t,
+            self.start_time,
+            self.start_time + duration,
+            self.road.lon2x(self.prev_location.longitude, 10000),
+            self.road.lon2x(self.location.longitude, 10000),
+        )
+        time2y = lambda t: sim.interpolate(
+            t,
+            self.start_time,
+            self.start_time + duration,
+            self.road.lat2y(self.prev_location.latitude, 10000),
+            self.road.lat2y(self.location.latitude, 10000),
+        )
         self.an = sim.AnimateRectangle(
-            x=lambda t: sim.interpolate(
-                t,
-                self.start_time,
-                self.start_time + duration,
-                self.road.lon2x(self.prev_location.longitude, 10000),
-                self.road.lon2x(self.location.longitude, 10000),
-            ),
-            y=lambda t: sim.interpolate(
-                t,
-                self.start_time,
-                self.start_time + duration,
-                self.road.lat2y(self.prev_location.latitude, 10000),
-                self.road.lat2y(self.location.latitude, 10000),
-            ),
+            x=time2x,
+            y=time2y,
             spec=(
                 -10,
                 -10,
@@ -80,6 +78,16 @@ class Car(sim.Component):
             linewidth=0,
             fillcolor="black",
         )
+        if ENABLE_3D:
+            self.an3d = sim.Animate3dBox(
+                x=time2x,
+                y=time2y,
+                z=lambda t: 0.5,
+                x_len=20,
+                y_len=20,
+                z_len=5,
+                shaded=False,
+            )
         self.hold(duration)
         self.an.remove()
         while len(self.location.downstream) > 0:

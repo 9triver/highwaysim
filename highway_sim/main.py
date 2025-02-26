@@ -24,6 +24,8 @@ from highway_sim.entity.location import Location
 # )
 # logger = logging.getLogger(__name__)
 
+ENABLE_3D = True
+
 start_time = time.time()
 road = Road()
 traffic = Traffic()
@@ -39,22 +41,53 @@ env = sim.Environment(random_seed="*", time_unit="milliseconds")
 env.animation_parameters(use_toplevel=True)
 CarGenerator(road=road, traffic=traffic)
 
-env.position((1000 + 10, 0))
+env.position((500, 0))
 g_simulation_resolution = 10000
 g_simulation_width_px = 1000
 g_simulation_height_px = 1000
 env.width(g_simulation_width_px)
 env.height(g_simulation_height_px)
+if ENABLE_3D:
+    env.width3d(g_simulation_width_px)
+    env.height3d(g_simulation_height_px)
+    env.position3d((500 + 1000, 0))
 
 env.x0(0)
 env.y0(0)
 env.x1(g_simulation_resolution)
 
+env.view(
+    x_center=5000,
+    y_center=5000,
+    z_center=0,
+    x_eye=5000,
+    y_eye=-1000,
+    z_eye=10000,
+    field_of_view_y=50,
+    # x_eye=-6.9024,
+    # y_eye=-95.8334,
+    # z_eye=30.0000,
+    # x_center=93.4761,
+    # y_center=623.7552,
+    # z_center=0.0000,
+    # field_of_view_y=55.5556,
+    # x_eye=176.9024,
+    # y_eye=295.8334,
+    # z_eye=30.0000,
+    # x_center=993.4761,
+    # y_center=123.7552,
+    # z_center=0.0000,
+    # field_of_view_y=55.5556,
+)
+
 env.video_close()
 env.show_fps(True)
 env.show_time(True)
 env.show_menu_buttons(True)
+env.camera_auto_print(True)
 env.animate(True)
+if ENABLE_3D:
+    env.animate3d(True)
 env.speed(10000)
 
 ###
@@ -70,8 +103,8 @@ class Pos:
 
 
 ###
-g_map_width = 800
-g_map_height = 800
+g_map_width = 500
+g_map_height = 500
 g_map_resolution = g_map_width
 g_map_scale_factor = 1.0
 g_map_drag_start_pos = Pos(0, 0)
@@ -190,7 +223,6 @@ def deal_cv_right_release(event):
         inspect_end_pos.x <= g_inspect_start_pos.x
         or inspect_end_pos.y <= g_inspect_start_pos.y
     ):
-        print("1")
         return
     rec_height = abs(inspect_end_pos.y - g_inspect_start_pos.y)
     rec_width = abs(inspect_end_pos.x - g_inspect_start_pos.x)
@@ -209,7 +241,6 @@ def deal_cv_right_release(event):
         sim_scale = g_map_width / rec_width
 
     # 从左上角(0, 0)放大,然后拖动
-    print("2")
     # g_simulation_window.geometry(f"{sim_width_px}x{sim_height_px}")
     # 如果在获取新的框前有移动sim界面,如何复位?用origin_point和scale
     deal_cv_mid_press(event)
@@ -226,7 +257,7 @@ def deal_cv_right_release(event):
 
 # visualization
 map_window = tkinter.Toplevel()
-map_window.geometry(f"{g_map_width}x{g_map_height}")
+map_window.geometry(f"{g_map_width}x{g_map_height}+0+0")
 
 g_map_cv = tkinter.Canvas(map_window, bg="white")
 
