@@ -63,7 +63,7 @@ env.view(
     x_eye=5000,
     y_eye=-1000,
     z_eye=10000,
-    field_of_view_y=50,
+    # field_of_view_y=30,
     # x_eye=-6.9024,
     # y_eye=-95.8334,
     # z_eye=30.0000,
@@ -233,7 +233,8 @@ def deal_cv_right_release(event):
     if rec_height > rec_width:
         sim_height_px = g_simulation_height_px
         sim_width_px = int(g_simulation_width_px * rec_width / rec_height)
-        sim_scale = rec_height / map_max_height
+        # attention to scale parameter
+        sim_scale = g_map_height / rec_height
 
     else:
         sim_width_px = g_simulation_width_px
