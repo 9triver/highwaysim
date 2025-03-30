@@ -11168,6 +11168,7 @@ class Environment:
             self.retina = 1  # not sure whether this is required
             self._width = 1024
             self._height = 768
+            self._ini_height = 768
         self.root = None
         self._position = (0, 0)
         self._position3d = (0, 0)
@@ -12199,6 +12200,7 @@ class Environment:
         if height is not None:
             if self._height != height:
                 self._height = height
+                self._ini_height = height
                 frame_changed = True
                 height_changed = True
 
@@ -12592,10 +12594,8 @@ class Environment:
                         g.scale_factor = 1.0
                         g.drag_start_pos_x = 0
                         g.drag_start_pos_y = 0
-                        # g.canvas_updated = False
 
                         def deal_cv_scroll_up(event):
-                            # g.canvas_updated = True
                             g.scale_factor *= SCALE_INCREASE_FACTOR
                             g.canvas.scale(
                                 "all",
@@ -12606,7 +12606,6 @@ class Environment:
                             )
 
                         def deal_cv_scroll_down(event):
-                            # g.canvas_updated = True
                             g.scale_factor *= SCALE_DECREASE_FACTOR
                             g.canvas.scale(
                                 "all",
@@ -12617,12 +12616,10 @@ class Environment:
                             )
 
                         def deal_cv_left_press(event):
-                            # g.canvas_updated = True
                             g.drag_start_pos_x = event.x
                             g.drag_start_pos_y = event.y
 
                         def deal_cv_left_motion(event):
-                            # g.canvas_updated = True
                             dx = event.x - g.drag_start_pos_x
                             dy = event.y - g.drag_start_pos_y
                             g.canvas.move("all", dx, dy)
@@ -17198,6 +17195,7 @@ class Animate2dBase(DynamicClass):
                 else:
                     width = self.env._width
                     height = self.env._height
+                    ini_height = self.env._ini_height
 
                 # left_border = (0 - g.origin_point) / g.scale_factor
                 # right_border = (width - g.origin_point) / g.scale_factor
@@ -17218,7 +17216,7 @@ class Animate2dBase(DynamicClass):
                 self._image_x = origin_x + self._image_x * g.scale_factor
 
                 self._image_y = (
-                    -origin_y + height - (height - self._image_y) * g.scale_factor
+                    -origin_y + height - (ini_height - self._image_y) * g.scale_factor
                 )
                 # deal drag
                 # print(self._image_y, origin_y)

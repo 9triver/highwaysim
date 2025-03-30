@@ -18,6 +18,7 @@ from highway_sim.util.distribution import gamma_distribution
 logger = logging.getLogger(__name__)
 
 ENABLE_3D = True
+ENABLE_2D = True
 
 
 class Car(sim.Component):
@@ -66,20 +67,21 @@ class Car(sim.Component):
             self.road.lat2y(self.prev_location.latitude, 10000),
             self.road.lat2y(self.location.latitude, 10000),
         )
-        self.an = sim.AnimateRectangle(
-            x=time2x,
-            y=time2y,
-            spec=(
-                -10,
-                -10,
-                10,
-                10,
-            ),
-            linewidth=0,
-            fillcolor="black",
-        )
+        if ENABLE_2D:
+            self.animate = sim.AnimateRectangle(
+                x=time2x,
+                y=time2y,
+                spec=(
+                    -10,
+                    -10,
+                    10,
+                    10,
+                ),
+                linewidth=0,
+                fillcolor="black",
+            )
         if ENABLE_3D:
-            self.an3d = sim.Animate3dBox(
+            self.animate3d = sim.Animate3dBox(
                 x=time2x,
                 y=time2y,
                 z=lambda t: 0.5,
@@ -89,7 +91,10 @@ class Car(sim.Component):
                 shaded=False,
             )
         self.hold(duration)
-        self.an.remove()
+        if ENABLE_2D:
+            self.animate.remove()
+        if ENABLE_3D:
+            self.animate3d.remove()
         while len(self.location.downstream) > 0:
             self.gantry_num += 1
             duration = (
@@ -103,32 +108,48 @@ class Car(sim.Component):
             self.location = self.location.get_next_location(True)
 
             self.start_time = self.env.now()
-            self.an = sim.AnimateRectangle(
-                x=lambda t: sim.interpolate(
-                    t,
-                    self.start_time,
-                    self.start_time + duration,
-                    self.road.lon2x(self.prev_location.longitude, 10000),
-                    self.road.lon2x(self.location.longitude, 10000),
-                ),
-                y=lambda t: sim.interpolate(
-                    t,
-                    self.start_time,
-                    self.start_time + duration,
-                    self.road.lat2y(self.prev_location.latitude, 10000),
-                    self.road.lat2y(self.location.latitude, 10000),
-                ),
-                spec=(
-                    -10,
-                    -10,
-                    10,
-                    10,
-                ),
-                linewidth=0,
-                fillcolor="black",
+            time2x = lambda t: sim.interpolate(
+                t,
+                self.start_time,
+                self.start_time + duration,
+                self.road.lon2x(self.prev_location.longitude, 10000),
+                self.road.lon2x(self.location.longitude, 10000),
             )
+            time2y = lambda t: sim.interpolate(
+                t,
+                self.start_time,
+                self.start_time + duration,
+                self.road.lat2y(self.prev_location.latitude, 10000),
+                self.road.lat2y(self.location.latitude, 10000),
+            )
+            if ENABLE_2D:
+                self.animate = sim.AnimateRectangle(
+                    x=time2x,
+                    y=time2y,
+                    spec=(
+                        -10,
+                        -10,
+                        10,
+                        10,
+                    ),
+                    linewidth=0,
+                    fillcolor="black",
+                )
+            if ENABLE_3D:
+                self.animate3d = sim.Animate3dBox(
+                    x=time2x,
+                    y=time2y,
+                    z=lambda t: 0.5,
+                    x_len=20,
+                    y_len=20,
+                    z_len=5,
+                    shaded=False,
+                )
             self.hold(duration)
-            self.an.remove()
+            if ENABLE_2D:
+                self.animate.remove()
+            if ENABLE_3D:
+                self.animate3d.remove()
 
         now = self.env.now()
         stats_default.num_passed_info(self.gantry_num, logger)

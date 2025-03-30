@@ -16,7 +16,7 @@ class LocationWithProb:
     p: float
 
 
-enable_get_next_by_prob: bool = False
+enable_get_next_by_prob: bool = True
 
 
 @dataclass(repr=False)

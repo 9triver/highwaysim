@@ -1,16 +1,10 @@
 import matplotlib
-matplotlib.use('TkAgg')  # 或者 'Agg', 'Qt5Agg', 'Qt4Agg', 'GTK3Agg', 等等
+
+matplotlib.use("TkAgg")  # 或者 'Agg', 'Qt5Agg', 'Qt4Agg', 'GTK3Agg', 等等
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# passed_values = []
-# total_used_values = []
-# this_used_values = []
-# enter_hour_nums = {}
-# exit_hour_nums = {}
-# enter_nums = []
-# exit_nums = []
 hours = list(range(1, 24))
 
 # 假设你的数据文件名为 'data.txt'
@@ -21,9 +15,9 @@ with open(filename, "r") as file:
     lines = file.readlines()
     this_used_values = eval(lines[3])
     # 注意,这里需要用float,不能用int,因为有很多值比较小,容易引起舍入问题
-    this_used_values = [int(x) / 50 for x in this_used_values]
+    this_used_values = [float(x) / 50 for x in this_used_values]
     total_used_values = eval(lines[4])
-    total_used_values = [int(x) / 60 / 15 for x in total_used_values]
+    total_used_values = [float(x) / 60 / 15 for x in total_used_values]
     passed_values = eval(lines[5])
     passed_values = [int(x) for x in passed_values]
     enter_hour_nums = eval(lines[6])

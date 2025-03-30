@@ -16,17 +16,21 @@ from typing import Dict, List, Tuple, Set
 from dataclasses import dataclass, field
 from highway_sim.entity.location import Location
 
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="%(message)s",
-#     filename="../statistics.log",
-#     filemode="w",
-# )
-# logger = logging.getLogger(__name__)
 
 ENABLE_3D = True
+ENABLE_2D = True
+ENABLE_LOG = True
 
-start_time = time.time()
+if ENABLE_LOG:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        filename="../statistics.log",
+        filemode="w",
+    )
+    logger = logging.getLogger(__name__)
+    start_time = time.time()
+
 road = Road()
 traffic = Traffic()
 road.parse()
@@ -57,6 +61,12 @@ env.y0(0)
 env.x1(g_simulation_resolution)
 
 env.view(
+    # x_center=5000,
+    # y_center=5000,
+    # z_center=0,
+    # x_eye=500,
+    # y_eye=-100,
+    # z_eye=100,
     x_center=5000,
     y_center=5000,
     z_center=0,
@@ -80,15 +90,20 @@ env.view(
     # field_of_view_y=55.5556,
 )
 
-env.video_close()
-env.show_fps(True)
-env.show_time(True)
-env.show_menu_buttons(True)
-env.camera_auto_print(True)
-env.animate(True)
+if ENABLE_2D:
+    env.video_close()
+    env.show_fps(True)
+    env.show_time(True)
+    env.show_menu_buttons(True)
+    env.camera_auto_print(True)
+    env.animate(True)
+else:
+    env.animate(False)
 if ENABLE_3D:
     env.animate3d(True)
-env.speed(10000)
+else:
+    env.animate(False)
+env.speed(3000)
 
 ###
 SCALE_INCREASE_FACTOR = 1.1
@@ -103,22 +118,23 @@ class Pos:
 
 
 ###
-g_map_width = 500
-g_map_height = 500
-g_map_resolution = g_map_width
-g_map_scale_factor = 1.0
-g_map_drag_start_pos = Pos(0, 0)
-g_inspect_start_pos = Pos(0, 0)
-g_map_origin_pos = Pos(0, 0)
-g_map_cv: tkinter.Canvas = None
-g_map_origin: int = 0
-g_simulation_window = env.root
-g_simulation_cv: tkinter.Canvas = sim.g.canvas
-g_b3_prompt_rec: int = -1
-g_prompt_start_pos: Pos = Pos(0, 0)
-g_sim_origin = sim.g.origin_point
-# 不能直接修改,因为不是引用
-g_sim_global = sim.g
+if ENABLE_2D:
+    g_map_width = 500
+    g_map_height = 500
+    g_map_resolution = g_map_width
+    g_map_scale_factor = 1.0
+    g_map_drag_start_pos = Pos(0, 0)
+    g_inspect_start_pos = Pos(0, 0)
+    g_map_origin_pos = Pos(0, 0)
+    g_map_cv: tkinter.Canvas = None
+    g_map_origin: int = 0
+    g_simulation_window = env.root
+    g_simulation_cv: tkinter.Canvas = sim.g.canvas
+    g_b3_prompt_rec: int = -1
+    g_prompt_start_pos: Pos = Pos(0, 0)
+    g_sim_origin = sim.g.origin_point
+    # 不能直接修改,因为不是引用
+    g_sim_global = sim.g
 
 
 # handler
@@ -257,41 +273,37 @@ def deal_cv_right_release(event):
 
 
 # visualization
-map_window = tkinter.Toplevel()
-map_window.geometry(f"{g_map_width}x{g_map_height}+0+0")
+if ENABLE_2D:
+    map_window = tkinter.Toplevel()
+    map_window.geometry(f"{g_map_width}x{g_map_height}+0+0")
+    g_map_cv = tkinter.Canvas(map_window, bg="white")
+    g_map_origin = g_map_cv.create_oval(0, 0, 0, 0, fill="white", outline="white")
 
-g_map_cv = tkinter.Canvas(map_window, bg="white")
+    g_map_cv.bind("<Button-4>", deal_cv_scroll_up)
+    g_map_cv.bind("<Button-5>", deal_cv_scroll_down)
+    g_map_cv.bind("<Button-1>", deal_cv_left_press)
+    g_map_cv.bind("<B1-Motion>", deal_cv_left_motion)
+    g_map_cv.bind("<Button-3>", deal_cv_right_press)
+    g_map_cv.bind("<ButtonRelease-3>", deal_cv_right_release)
+    g_map_cv.bind("<B3-Motion>", deal_cv_right_motion)
+    g_map_cv.bind("<Button-2>", deal_cv_mid_press)
 
-g_map_origin = g_map_cv.create_oval(0, 0, 0, 0, fill="white", outline="white")
+    g_map_cv.pack(fill="both", expand=True)
 
-
-g_map_cv.bind("<Button-4>", deal_cv_scroll_up)
-g_map_cv.bind("<Button-5>", deal_cv_scroll_down)
-g_map_cv.bind("<Button-1>", deal_cv_left_press)
-g_map_cv.bind("<B1-Motion>", deal_cv_left_motion)
-g_map_cv.bind("<Button-3>", deal_cv_right_press)
-g_map_cv.bind("<ButtonRelease-3>", deal_cv_right_release)
-g_map_cv.bind("<B3-Motion>", deal_cv_right_motion)
-g_map_cv.bind("<Button-2>", deal_cv_mid_press)
-
-
-g_map_cv.pack(fill="both", expand=True)
-
-# draw_map()
-road.draw_map(g_map_cv, g_map_width, g_map_height)
-# 注意,这里不能传入resolution,因为直接调用tkinter
-road.draw_map(
-    g_simulation_cv, g_simulation_width_px, g_simulation_height_px, "red", False
-)
+    road.draw_map(g_map_cv, g_map_width, g_map_height)
+    # 注意,这里不能传入resolution,因为直接调用tkinter
+    road.draw_map(
+        g_simulation_cv, g_simulation_width_px, g_simulation_height_px, "red", False
+    )
 
 # map_window.mainloop()
 
 ###
 
 
-env.run(common.DAY_MILLISECOND * 0.1)
+env.run(common.DAY_MILLISECOND * 1)
 
-
-# end_time = time.time()
-# logger.info("spend %fs", end_time - start_time)
-# stats_default.record(logger)
+if ENABLE_LOG:
+    end_time = time.time()
+    logger.info("spend %fs", end_time - start_time)
+    stats_default.record(logger)
