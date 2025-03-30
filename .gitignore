@@ -3,3 +3,9 @@ __pycache__
 note.md
 *.log
 .idea/
+
+# sphinx
+source/
+build/
+make.bat
+Makefile

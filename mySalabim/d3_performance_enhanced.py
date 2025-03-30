@@ -61,6 +61,12 @@ from typing import (
     Optional,
 )
 
+# added
+from pympler import tracker
+from pympler import summary
+
+# added
+
 # module = salabim  # for PythonInExcel runner
 
 dataframe = None  # to please PyLance
@@ -74,6 +80,14 @@ PyPy = platform.python_implementation() == "PyPy"
 Chromebook = "penguin" in platform.uname()
 PythonInExcel = not ("__file__" in globals())
 AnacondaCode = sys.platform == "emscripten"
+
+# added
+Enable_frustum_culling = True
+Projection_dot_view_matrix = None
+tr = tracker.SummaryTracker()
+SUMMARY_INTERVAL = 100
+SUMMARY_CNT = 0
+# added
 
 
 def a_log(*args):
@@ -6330,6 +6344,43 @@ class Animate3dBase(DynamicClass):
     def is_removed(self) -> bool:
         return self in self.env.an_objects3d
 
+    def is_point_in_frustum(self, t) -> bool:
+        """
+        Args:
+            world_point (np.array): point in world coordinate [x, y, z]
+        """
+        x = self.x(t)
+        y = self.y(t)
+        z = self.z(t)
+        x_ref = self.x_ref(t)
+        y_ref = self.y_ref(t)
+        z_ref = self.z_ref(t)
+        x_len = self.x_len(t)
+        y_len = self.y_len(t)
+        z_len = self.z_len(t)
+
+        x_c = (x + x_ref / 2 * x_len) + 0
+        y_c = (y + y_ref / 2 * y_len) - 100
+        z_c = (z + z_ref / 2 * z_len) + 0
+
+        global Enable_frustum_culling
+        if not Enable_frustum_culling:
+            return True
+
+        world_point = numpy.array([x_c, y_c, z_c, 1.0])  # [x, y, z] -> [x, y, z, 1]
+
+        clip_coords = numpy.dot(Projection_dot_view_matrix, world_point)
+
+        x_clip, y_clip, z_clip, w_clip = clip_coords
+
+        x_w = x_clip / w_clip
+        y_w = y_clip / w_clip
+        z_w = z_clip / w_clip
+        if -1 <= x_w <= 1 and -1 <= y_w <= 1 and -1 <= z_w <= 1:
+            return True
+        else:
+            return False
+
 
 class _Movement:
     # used by trajectories
@@ -11799,6 +11850,15 @@ class Environment:
                     )
                 else:
                     t = inf
+            # added
+            global SUMMARY_CNT
+            global SUMMARY_INTERVAL
+            global tr
+            if SUMMARY_CNT * SUMMARY_INTERVAL < t:
+                SUMMARY_CNT += 1
+                s = tr.create_summary()
+                summary.print_(s)
+            # added
             c._on_event_list = False
             self.env._now = t
 
@@ -12586,64 +12646,7 @@ class Environment:
                         g.canvas.configure(
                             background=self.colorspec_to_hex("bg", False)
                         )
-
-                        SCALE_INCREASE_FACTOR = 1.1
-                        SCALE_DECREASE_FACTOR = 0.9
-                        g.scale_factor = 1.0
-                        g.drag_start_pos_x = 0
-                        g.drag_start_pos_y = 0
-                        # g.canvas_updated = False
-
-                        def deal_cv_scroll_up(event):
-                            # g.canvas_updated = True
-                            g.scale_factor *= SCALE_INCREASE_FACTOR
-                            g.canvas.scale(
-                                "all",
-                                event.x,
-                                event.y,
-                                SCALE_INCREASE_FACTOR,
-                                SCALE_INCREASE_FACTOR,
-                            )
-
-                        def deal_cv_scroll_down(event):
-                            # g.canvas_updated = True
-                            g.scale_factor *= SCALE_DECREASE_FACTOR
-                            g.canvas.scale(
-                                "all",
-                                event.x,
-                                event.y,
-                                SCALE_DECREASE_FACTOR,
-                                SCALE_DECREASE_FACTOR,
-                            )
-
-                        def deal_cv_left_press(event):
-                            # g.canvas_updated = True
-                            g.drag_start_pos_x = event.x
-                            g.drag_start_pos_y = event.y
-
-                        def deal_cv_left_motion(event):
-                            # g.canvas_updated = True
-                            dx = event.x - g.drag_start_pos_x
-                            dy = event.y - g.drag_start_pos_y
-                            g.canvas.move("all", dx, dy)
-                            g.drag_start_pos_x = event.x
-                            g.drag_start_pos_y = event.y
-
-                        def deal_root_configure(event):
-                            self._height = event.height
-                            self._width = event.width
-
-                        g.origin_point = g.canvas.create_oval(
-                            0, 0, 0, 0, fill="white", outline="white"
-                        )
-                        g.canvas.bind("<Button-4>", deal_cv_scroll_up)
-                        g.canvas.bind("<Button-5>", deal_cv_scroll_down)
-                        g.canvas.bind("<Button-1>", deal_cv_left_press)
-                        g.canvas.bind("<B1-Motion>", deal_cv_left_motion)
-                        g.canvas.bind("<Configure>", deal_root_configure)
-
-                        g.canvas.pack(fill="both", expand=True)
-
+                        g.canvas.pack()
                         g.canvas_objects = []
                         g.canvas_object_overflow_image = None
 
@@ -14239,23 +14242,19 @@ class Environment:
                             ao.canvas_object = co1
 
                     else:
-                        # if the canvas object is not the same as the previous one, we need to update the image
                         if ao.canvas_object == co:
                             if ao._image_ident != ao._image_ident_prev:
-                                # print("updated")
                                 ao.im = ImageTk.PhotoImage(ao._image)
                                 g.canvas.itemconfig(ao.canvas_object, image=ao.im)
 
                             if (ao._image_x != ao._image_x_prev) or (
                                 ao._image_y != ao._image_y_prev
                             ):
-                                # print(ao._image_y)
-                                # print("xyupdated")
-                                # print(self._height, ao._image.size[1])
                                 g.canvas.coords(
                                     ao.canvas_object,
                                     (ao._image_x, self._height - ao._image_y),
                                 )
+
                         else:
                             ao.im = ImageTk.PhotoImage(ao._image)
                             ao.canvas_object = co
@@ -16597,9 +16596,6 @@ class Animate2dBase(DynamicClass):
                             as_points,
                             angle,
                             self.screen_coordinates,
-                            g.scale_factor,
-                            self.env._width,
-                            self.env._height,
                         )
                     elif self.type == "line":
                         as_points = self.as_points(t)
@@ -16612,9 +16608,6 @@ class Animate2dBase(DynamicClass):
                             as_points,
                             angle,
                             self.screen_coordinates,
-                            g.scale_factor,
-                            self.env._width,
-                            self.env._height,
                         )
                     elif self.type == "polygon":
                         as_points = self.as_points(t)
@@ -16627,9 +16620,6 @@ class Animate2dBase(DynamicClass):
                             as_points,
                             angle,
                             self.screen_coordinates,
-                            g.scale_factor,
-                            self.env._width,
-                            self.env._height,
                         )
                     elif self.type == "circle":
                         as_points = False
@@ -16652,9 +16642,6 @@ class Animate2dBase(DynamicClass):
                             fillcolor,
                             angle,
                             self.screen_coordinates,
-                            g.scale_factor,
-                            self.env._width,
-                            self.env._height,
                         )
 
                     if self._image_ident != self._image_ident_prev:
@@ -16846,22 +16833,13 @@ class Animate2dBase(DynamicClass):
                             self._image = Image.new(
                                 "RGBA",
                                 (
-                                    int(
-                                        (maxrx - minrx + 2 * linewidth) * g.scale_factor
-                                    ),
-                                    int(
-                                        (maxry - minry + 2 * linewidth) * g.scale_factor
-                                    ),
+                                    int(maxrx - minrx + 2 * linewidth),
+                                    int(maxry - minry + 2 * linewidth),
                                 ),
                                 (0, 0, 0, 0),
                             )
                             point_image = Image.new(
-                                "RGBA",
-                                (
-                                    int(linewidth * g.scale_factor),
-                                    int(linewidth * g.scale_factor),
-                                ),
-                                linecolor,
+                                "RGBA", (int(linewidth), int(linewidth)), linecolor
                             )
 
                             for i in range(0, len(r), 2):
@@ -16870,8 +16848,8 @@ class Animate2dBase(DynamicClass):
                                 self._image.paste(
                                     point_image,
                                     (
-                                        int((rx - 0.5 * linewidth) * g.scale_factor),
-                                        int((ry - 0.5 * linewidth) * g.scale_factor),
+                                        int(rx - 0.5 * linewidth),
+                                        int(ry - 0.5 * linewidth),
                                     ),
                                     point_image,
                                 )
@@ -16880,32 +16858,25 @@ class Animate2dBase(DynamicClass):
                             self._image = Image.new(
                                 "RGBA",
                                 (
-                                    int(
-                                        (maxrx - minrx + 2 * linewidth) * g.scale_factor
-                                    ),
-                                    int(
-                                        (maxry - minry + 2 * linewidth) * g.scale_factor
-                                    ),
+                                    int(maxrx - minrx + 2 * linewidth),
+                                    int(maxry - minry + 2 * linewidth),
                                 ),
                                 (0, 0, 0, 0),
                             )
                             draw = ImageDraw.Draw(self._image)
                             if fillcolor[3] != 0:
-                                draw.polygon(
-                                    [x * g.scale_factor for x in rscaled],
-                                    fill=fillcolor,
-                                )
+                                draw.polygon(rscaled, fill=fillcolor)
                             if (round(linewidth) > 0) and (linecolor[3] != 0):
                                 if self.type == "circle" and not draw_arc:
                                     draw.line(
-                                        [x * g.scale_factor for x in rscaled[2:-2]],
+                                        rscaled[2:-2],
                                         fill=linecolor,
                                         width=int(linewidth),
                                     )
                                     # get rid of the first and last point (=center)
                                 else:
                                     draw.line(
-                                        [x * g.scale_factor for x in rscaled],
+                                        rscaled,
                                         fill=linecolor,
                                         width=int(round(linewidth)),
                                     )
@@ -16984,9 +16955,6 @@ class Animate2dBase(DynamicClass):
                         alpha,
                         flip_horizontal,
                         flip_vertical,
-                        g.scale_factor,
-                        self.env._width,
-                        self.env._height,
                     )
 
                     if self._image_ident != self._image_ident_prev:
@@ -17103,9 +17071,6 @@ class Animate2dBase(DynamicClass):
                         angle,
                         textcolor,
                         max_lines,
-                        g.scale_factor,
-                        self.env._width,
-                        self.env._height,
                     )
                     if self._image_ident != self._image_ident_prev:
                         font, heightA = getfont(fontname, fontsize)
@@ -17210,38 +17175,6 @@ class Animate2dBase(DynamicClass):
                 else:
                     width = self.env._width
                     height = self.env._height
-
-                # left_border = (0 - g.origin_point) / g.scale_factor
-                # right_border = (width - g.origin_point) / g.scale_factor
-                # top_border = (0 - g.origin_point) / g.scale_factor
-                # bottom_border = (height - g.origin_point) / g.scale_factor
-
-                # self._image_visible = (
-                #     (self._image_x <= right_border)
-                #     and (self._image_y <= bottom_border)
-                #     and (self._image_x + self._image.size[0] >= left_border)
-                #     and (self._image_y + self._image.size[1] >= top_border)
-                # )
-
-                tmp = g.canvas.coords(g.origin_point)
-                origin_x = tmp[0]
-                origin_y = tmp[1]
-
-                self._image_x = origin_x + self._image_x * g.scale_factor
-
-                self._image_y = (
-                    -origin_y + height - (height - self._image_y) * g.scale_factor
-                )
-                # deal drag
-                # print(self._image_y, origin_y)
-                # self._image_y = -origin_y + self._image_y
-                # # deal scale
-                # self._image_y = (
-                #     -(height - origin_y - self._image_y) * g.scale_factor
-                #     + height
-                #     - origin_y
-                # )
-                # print(self._image_y)
 
                 self._image_visible = (
                     (self._image_x <= width)
@@ -27130,14 +27063,15 @@ class _AnimateIntro(Animate3dBase):
         glu.gluLookAt(
             x_eye, y_eye, z_eye, x_center, y_center, z_center, x_up, y_up, z_up
         )
+
         gl.glEnable(gl.GL_LIGHTING)
         gl.glLightModelfv(self.model_lights_pname(t), self.model_lights_param(t))
         gl.glLightfv(self.lights_light(t), self.lights_pname(t), self.lights_param(t))
         gl.glEnable(gl.GL_LIGHT0)
 
         gl.glMatrixMode(gl.GL_MODELVIEW)
-
         gl.glLoadIdentity()
+        set_projection_dot_view_matrix()
 
 
 class _AnimateExtro(Animate3dBase):
@@ -27974,26 +27908,40 @@ class Animate3dBox(Animate3dBase):
         gl_edge_color, show_edge = self.env.colorspec_to_gl_color_alpha(
             self.edge_color(t)
         )
+        x = self.x(t)
+        y = self.y(t)
+        z = self.z(t)
+        x_ref = self.x_ref(t)
+        y_ref = self.y_ref(t)
+        z_ref = self.z_ref(t)
+        x_len = self.x_len(t)
+        y_len = self.y_len(t)
+        z_len = self.z_len(t)
 
-        draw_box3d(
-            x_len=self.x_len(t),
-            y_len=self.y_len(t),
-            z_len=self.z_len(t),
-            x=self.x(t) + self.x_offset,
-            y=self.y(t) + self.y_offset,
-            z=self.z(t) + self.z_offset,
-            x_angle=0,
-            y_angle=0,
-            z_angle=self.z_angle(t),
-            x_ref=self.x_ref(t),
-            y_ref=self.y_ref(t),
-            z_ref=self.z_ref(t),
-            gl_color=gl_color,
-            show=show,
-            edge_gl_color=gl_edge_color,
-            show_edge=show_edge,
-            shaded=self.shaded(t),
-        )
+        x_c = (x + x_ref / 2 * x_len) + 0
+        y_c = (y + y_ref / 2 * y_len) + 0
+        z_c = (z + z_ref / 2 * z_len) + 0
+
+        if self.is_point_in_frustum(t):
+            draw_box3d(
+                x_len=self.x_len(t),
+                y_len=self.y_len(t),
+                z_len=self.z_len(t),
+                x=self.x(t) + self.x_offset,
+                y=self.y(t) + self.y_offset,
+                z=self.z(t) + self.z_offset,
+                x_angle=0,
+                y_angle=0,
+                z_angle=self.z_angle(t),
+                x_ref=self.x_ref(t),
+                y_ref=self.y_ref(t),
+                z_ref=self.z_ref(t),
+                gl_color=gl_color,
+                show=show,
+                edge_gl_color=gl_edge_color,
+                show_edge=show_edge,
+                shaded=self.shaded(t),
+            )
 
 
 class Animate3dBar(Animate3dBase):
@@ -29778,6 +29726,20 @@ def captured_stdout_as_list(column_name: str = None) -> list:
     """
 
     return captured_stdout_as_str().splitlines()
+
+
+def set_projection_dot_view_matrix():
+    # modelview_matrix = numpy.array(
+    #     gl.glGetDoublev(gl.GL_MODELVIEW_MATRIX), dtype=numpy.float64
+    # ).T
+    # view_matrix equals to I
+    # projection_matrix = numpy.array(
+    #     gl.glGetDoublev(gl.GL_PROJECTION_MATRIX), dtype=numpy.float64
+    # ).T
+    global Projection_dot_view_matrix
+    Projection_dot_view_matrix = numpy.array(
+        gl.glGetDoublev(gl.GL_PROJECTION_MATRIX), dtype=numpy.float64
+    ).T
 
 
 class capture_stdout:

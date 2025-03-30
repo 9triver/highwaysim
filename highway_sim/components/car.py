@@ -1,11 +1,6 @@
 import logging
 
-import sys
-
-sys.path.append("..")
-import mySalabim_tkEnhanced as sim
-
-# import salabim as sim
+import mySalabim.d2_interface_enhanced as sim
 
 from highway_sim.config import common
 from highway_sim.config import fitting_data as fit
@@ -36,17 +31,17 @@ class Car(sim.Component):
         duration = 0
         if isinstance(self.location, TollPlaza):
             duration = (
-                gamma_distribution(
-                    fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 10
-                )
-                * common.SECOND_MILLISECOND
+                    gamma_distribution(
+                        fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 10
+                    )
+                    * common.SECOND_MILLISECOND
             )
         else:
             duration = (
-                gamma_distribution(
-                    fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
-                )
-                * common.SECOND_MILLISECOND
+                    gamma_distribution(
+                        fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
+                    )
+                    * common.SECOND_MILLISECOND
             )
             stats_default.gantry_time_info(duration, logger)
         self.prev_location = self.location
@@ -98,10 +93,10 @@ class Car(sim.Component):
         while len(self.location.downstream) > 0:
             self.gantry_num += 1
             duration = (
-                gamma_distribution(
-                    fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
-                )
-                * common.SECOND_MILLISECOND
+                    gamma_distribution(
+                        fit.NEXT_GANTRY_GAMMA_ALPHA, fit.NEXT_GANTRY_GAMMA_BETA, 75
+                    )
+                    * common.SECOND_MILLISECOND
             )
             stats_default.gantry_time_info(duration, logger)
             self.prev_location = self.location

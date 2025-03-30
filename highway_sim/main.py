@@ -2,20 +2,14 @@ import logging
 import time
 import tkinter
 
-import mySalabim_tkEnhanced as sim
-
-# import salabim as sim
+from mySalabim import d2_interface_enhanced as sim
 
 from highway_sim.components.car_generator import CarGenerator
-from highway_sim.config import common
 from highway_sim.data_parser_and_holder.road import Road
 from highway_sim.data_parser_and_holder.traffic import Traffic
 from highway_sim.stats import default as stats_default
 from highway_sim.config import common
-from typing import Dict, List, Tuple, Set
-from dataclasses import dataclass, field
-from highway_sim.entity.location import Location
-
+from dataclasses import dataclass
 
 ENABLE_3D = True
 ENABLE_2D = True
@@ -222,9 +216,9 @@ def deal_cv_right_release(event):
     print(inspect_end_pos)
 
     map_max_height = (
-        g_map_width
-        / (road.max_longitude - road.min_longitude)
-        * (road.max_latitude - road.min_latitude)
+            g_map_width
+            / (road.max_longitude - road.min_longitude)
+            * (road.max_latitude - road.min_latitude)
     )
     if g_inspect_start_pos.x < 0:
         g_inspect_start_pos.x = 0
@@ -236,8 +230,8 @@ def deal_cv_right_release(event):
         inspect_end_pos.y = g_map_height
 
     if (
-        inspect_end_pos.x <= g_inspect_start_pos.x
-        or inspect_end_pos.y <= g_inspect_start_pos.y
+            inspect_end_pos.x <= g_inspect_start_pos.x
+            or inspect_end_pos.y <= g_inspect_start_pos.y
     ):
         return
     rec_height = abs(inspect_end_pos.y - g_inspect_start_pos.y)
