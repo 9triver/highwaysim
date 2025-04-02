@@ -8,10 +8,20 @@ from highway_sim.config import resources
 
 
 class Traffic:
+    """
+    Traffic类用于解析并存储交通流量相关数据，如入口的流量分布等
+    """
+
     def __init__(self):
         self.hour_2_interval_ms: Dict[int, float] = {}
 
     def parse(self) -> None:
+        """
+        解析流量相关数据，如入口的流量分布，并存储
+
+        Returns:
+
+        """
         self.__parse_traffic_distribution()
 
     def __parse_traffic_distribution(self) -> None:

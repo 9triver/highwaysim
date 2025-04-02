@@ -17,8 +17,27 @@ ENABLE_2D = True
 
 
 class Car(sim.Component):
+    """
+    Car类用于模拟高速公路上的车辆行为，继承自Salabim的Component类。
 
-    def setup(self, road, traffic):
+    主要功能包括：
+    - 车辆初始化：根据道路网络随机选择入口位置
+    - 路径选择：基于Gamma分布模拟车辆在门架间的移动时间
+    - 动画渲染：支持2D/3D模式下车辆移动的实时渲染
+    - 数据统计：记录车辆通过的门架数量、总行程时间等信息
+    """
+
+    def setup(self, road, traffic) -> None:
+        """
+        初始化Car，设置初始位置
+
+        Args:
+            road: 道路parser
+            traffic: 交通流量parser
+
+        Returns:
+
+        """
         self.road: Road = road
         self.traffic: Traffic = traffic
         self.location: Location = self.road.get_entrance_by_prob()
@@ -26,7 +45,13 @@ class Car(sim.Component):
         self.start_time: float = self.env.now()
         self.prev_location: Location = None
 
-    def process(self):
+    def process(self) -> None:
+        """
+        模拟车辆行驶过程，包括路径选择、动画渲染、数据统计
+        
+        Returns:
+
+        """
         stats_default.entry_hour_info(self.env.now(), logger)
         duration = 0
         if isinstance(self.location, TollPlaza):

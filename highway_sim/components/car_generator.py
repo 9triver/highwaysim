@@ -8,16 +8,36 @@ from highway_sim.config import fitting_data as fit
 
 
 class CarGenerator(sim.Component):
-    def setup(self, road, traffic):
+    """
+    CarGenerator是一个仿真组件，用于模拟车辆生成过程。
+    """
+
+    def setup(self, road, traffic) -> None:
+        """
+        初始化CarGenerator，设置道路和交通流量解析器
+
+        Args:
+            road (Road): 道路解析器
+            traffic (Traffic): 交通流量解析器
+
+        Returns:
+
+        """
         self.road = road
         self.traffic = traffic
 
-    def process(self):
+    def process(self) -> None:
+        """
+        模拟车辆生成过程，根据交通流量生成车辆
+
+        Returns:
+
+        """
         while True:
             Car(road=self.road, traffic=self.traffic)
-            self.hold(self.gen_interval_ms())
+            self.hold(self.__gen_interval_ms())
 
-    def gen_interval_ms(self) -> int:
+    def __gen_interval_ms(self) -> int:
         hour: int = int(self.env.now() / common.HOUR_MILLISECOND) % 24
         interval1 = self.traffic.hour_2_interval_ms[(hour + 23) % 24]
         interval2 = self.traffic.hour_2_interval_ms[hour]

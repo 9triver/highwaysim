@@ -1,3 +1,3 @@
 """
-salabim components subclasses
+仿真组件模块
 """

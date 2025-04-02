@@ -1,8 +1,0 @@
-[MASTER]
-init-hook='import sys; sys.path.append("./highway_sim")'
-
-[MESSAGES CONTROL]
-disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
-
-[DESIGN]
-min-public-methods=1

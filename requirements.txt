@@ -1,0 +1,11 @@
+greenlet==3.1.1
+matplotlib==3.10.1
+numpy==2.2.4
+pandas==2.2.3
+Pillow==11.1.0
+Pympler==1.1
+PyOpenGL==3.1.7
+PyOpenGL==3.1.9
+python_dateutil==2.9.0.post0
+salabim==24.0.13
+seaborn==0.13.2

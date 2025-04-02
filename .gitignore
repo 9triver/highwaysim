@@ -3,8 +3,10 @@ __pycache__
 note.md
 *.log
 .idea/
+.pylintrc
 
 # sphinx
+doc/
 source/
 build/
 make.bat

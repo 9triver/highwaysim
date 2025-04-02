@@ -21,8 +21,11 @@ enable_get_next_by_prob: bool = True
 
 @dataclass(repr=False)
 class Location(ABC):
+    """
+    位置类,用于表示高速公路上的位置,包括收费站,门架等
+    """
     name: str = ""
-    id: str = ""
+    _id: str = ""
     hex_code: str = ""
     longitude: float = 0
     latitude: float = 0
@@ -33,6 +36,15 @@ class Location(ABC):
     downstream: List[LocationWithProb] = field(default_factory=list)
 
     def get_next_location(self, enable_prob: bool = False) -> Optional[Location, None]:
+        """
+        获取当前位置的一个下游位置
+
+        Args:
+            enable_prob (bool): 是否启用按概率选择
+
+        Returns:
+
+        """
         if len(self.downstream) == 0:
             return None
         if not (enable_prob and enable_get_next_by_prob):
@@ -56,12 +68,16 @@ class Location(ABC):
         return random.choice(self.downstream).l
 
     def __repr__(self):
-        return f"Location(name={self.name}, id={self.id}, hex={self.hex_code}, longitude={self.longitude}, latitude={self.latitude})"
+        return f"Location(name={self.name}, id={self._id}, hex={self.hex_code}, longitude={self.longitude}, latitude={self.latitude})"
 
 
 @dataclass(repr=False)
 class Gantry(Location):
     class Type(enum.Enum):
+        """
+        门架类型
+
+        """
         COMMON = enum.auto()
         PROVINCE_ENTRANCE = enum.auto()
         PROVINCE_EXIT = enum.auto()
@@ -69,24 +85,27 @@ class Gantry(Location):
         def __str__(self):
             return self.name
 
-    hex_code_of_reverse_gantry: str = ""
-    gantry_type: Type = Type.COMMON
+    _hex_code_of_reverse_gantry: str = ""
+    _gantry_type: Type = Type.COMMON
 
     def __repr__(self):
-        return super().__repr__() + str(self.gantry_type)
+        return super().__repr__() + str(self._gantry_type)
 
 
 @dataclass(repr=False)
 class TollPlaza(Location):
     class Type(enum.Enum):
+        """
+        收费站类型
+        """
         ENTRANCE = enum.auto()
         EXIT = enum.auto()
 
         def __str__(self):
             return self.name
 
-    tp_type: Type = Type.ENTRANCE
-    supported_gantry_id: str = "null"
+    _tp_type: Type = Type.ENTRANCE
+    _supported_gantry_id: str = "null"
 
     def __repr__(self):
-        return super().__repr__() + str(self.tp_type)
+        return super().__repr__() + str(self.__tp_type)

@@ -1,14 +1,12 @@
-"""
-应当拆分?
-注意,即使read_excel 设置dtype = str,遇到空值还是会转换为float(NaN),需要设置na_filter=False
-greenlet可以共享全局变量和实例,但是不能共享类变量,这是为什么呢
-greenlet貌似因为在一个线程内,所以不用加锁
-单例模式对greenlet没用,因为greenlet会清除类变量,而单例模式_instance要用类变量
-所以尽量不要使用类变量
-每个 greenlet 有自己的 执行上下文（execution context），这个上下文包括栈、局部变量、寄存器等与协程执行相关的状态
-
-gantry.xlxs里面有重复数据,需要删除,否则导致出现多个hex相同但id不同的对象
-"""
+# 应当拆分?
+# 注意,即使read_excel 设置dtype = str,遇到空值还是会转换为float(NaN),需要设置na_filter=False
+# greenlet可以共享全局变量和实例,但是不能共享类变量,这是为什么呢
+# greenlet貌似因为在一个线程内,所以不用加锁
+# 单例模式对greenlet没用,因为greenlet会清除类变量,而单例模式_instance要用类变量
+# 所以尽量不要使用类变量
+# 每个 greenlet 有自己的 执行上下文（execution context），这个上下文包括栈、局部变量、寄存器等与协程执行相关的状态
+#
+# gantry.xlxs里面有重复数据,需要删除,否则导致出现多个hex相同但id不同的对象
 
 from __future__ import annotations
 
@@ -30,6 +28,11 @@ logger = logging.getLogger(__name__)
 
 
 class Road:
+    """
+    道路数据解析存储类
+    因为使用greenlet的原因，不能使用类变量，需要手动控制创建实例为单例
+    """
+
     def __init__(self):
         self.id_2_gantry: Dict[str, Gantry] = {}
         # 门架与收费站hex不会相同,出入口hex相同,同一个收费站不同状态/主分站hex相同
@@ -47,11 +50,17 @@ class Road:
         self.max_longitude = -180
         self.scale_factor = 1.0
 
-    ENTRANCE_INDEX = 7
-    ENTRANCE_NAME = "省界入口"
-    EXIT_NAME = "省界出口"
+    __ENTRANCE_INDEX = 7
+    __ENTRANCE_NAME = "省界入口"
+    __EXIT_NAME = "省界出口"
 
     def parse(self) -> None:
+        """
+        解析道路相关数据，如门架信息，收费站信息，门架拓扑关系，下游选择概率，并存储
+
+        Returns:
+
+        """
         self.__parse_gantry_information()
         self.__parse_toll_plaza()
         self.__parse_relation()
@@ -84,13 +93,13 @@ class Road:
             latitude = float(row.iloc[3])
             hex_code = row.iloc[4].strip()
             hex_code_of_reverse_gantry = row.iloc[5].strip()
-            type_value = row.iloc[self.ENTRANCE_INDEX].strip()
+            type_value = row.iloc[self.__ENTRANCE_INDEX].strip()
             gantry_type = (
                 Gantry.Type.PROVINCE_ENTRANCE
-                if type_value == self.ENTRANCE_NAME
+                if type_value == self.__ENTRANCE_NAME
                 else (
                     Gantry.Type.PROVINCE_EXIT
-                    if type_value == self.EXIT_NAME
+                    if type_value == self.__EXIT_NAME
                     else Gantry.Type.COMMON
                 )
             )
@@ -100,12 +109,12 @@ class Road:
                 continue
             gantry = Gantry(
                 name=name,
-                id=id_str,
+                _id=id_str,
                 longitude=longitude,
                 latitude=latitude,
                 hex_code=hex_code,
-                hex_code_of_reverse_gantry=hex_code_of_reverse_gantry,
-                gantry_type=gantry_type,
+                _hex_code_of_reverse_gantry=hex_code_of_reverse_gantry,
+                _gantry_type=gantry_type,
             )
             if gantry_type == Gantry.Type.PROVINCE_ENTRANCE:
                 self.province_entrances.append(gantry)
@@ -152,12 +161,12 @@ class Road:
         t = TollPlaza.Type.ENTRANCE
         tp = TollPlaza(
             name=n,
-            id=i,
+            _id=i,
             longitude=lo,
             latitude=la,
             hex_code=h,
-            tp_type=t,
-            supported_gantry_id=g,
+            _tp_type=t,
+            _supported_gantry_id=g,
         )
         self.hex_2_entrance[h] = tp
 
@@ -165,12 +174,12 @@ class Road:
         t = TollPlaza.Type.EXIT
         tp = TollPlaza(
             name=n,
-            id=i,
+            _id=i,
             longitude=lo,
             latitude=la,
             hex_code=h,
-            tp_type=t,
-            supported_gantry_id=g,
+            _tp_type=t,
+            _supported_gantry_id=g,
         )
         self.hex_2_exit[h] = tp
 
@@ -268,6 +277,12 @@ class Road:
                     break
 
     def get_entrance_by_prob(self) -> Location:
+        """
+        通过解析数据计算的概率选择一个入口
+
+        Returns:
+            Location: 选择的入口
+        """
         if random.random() < fit.PROVINCE_ENTRANCE_RATION:
             return random.choice(self.province_entrances)
         p = random.random()
@@ -280,29 +295,64 @@ class Road:
         return random.choice(self.province_entrances)
 
     def lon2x(self, lon: float, resolution) -> float:
-        return (
-            (lon - self.min_longitude)
-            / (self.max_longitude - self.min_longitude)
-            * resolution
-        ) * self.scale_factor
+        """
+        根据解析的门架经纬度信息，计算传入的经度在窗口中的x坐标
 
-    def lat2y(self, lat: float, resolution) -> float:
+        Args:
+            lon (float): 经度数据
+            resolution (float): 窗口分辨率，即坐标轴长度
+
+        Returns:
+            float: x坐标
+        """
         return (
-            (
-                (lat - self.min_latitude)
+                (lon - self.min_longitude)
                 / (self.max_longitude - self.min_longitude)
                 * resolution
+        ) * self.scale_factor
+
+    def lat2y(self, lat: float, resolution: float) -> float:
+        """
+        根据解析的门架经纬度信息，计算传入的纬度在窗口中的y坐标
+
+        Args:
+            lat (float): 纬度数据
+            resolution (float): 窗口分辨率，即坐标轴长度
+
+        Returns:
+            float: y坐标
+        """
+        return (
+            (
+                    (lat - self.min_latitude)
+                    / (self.max_longitude - self.min_longitude)
+                    * resolution
             )
         ) * self.scale_factor
 
     def draw_map(
-        self,
-        cv: tkinter.Canvas,
-        width,
-        window_height,
-        road_color="black",
-        create_oval=True,
+            self,
+            cv: tkinter.Canvas,
+            width: float,
+            height: float,
+            road_color: str = "black",
+            create_oval: bool = True,
     ) -> None:
+        """
+        根据解析的门架信息在传入的画布中绘制地图，道路用两条门架中的线表示，可以选择是否绘制门架
+        自动将门架最长轴对齐到画布的相应轴
+
+        Args:
+            cv (tkinter.Canvas): 画布对象
+            width (float): 画布宽度（像素数量）
+            height (float): 画布高度（像素数量）
+            road_color  (str): 道路颜色
+            create_oval (bool): 是否绘制门架
+
+        Returns:
+
+        """
+
         hex_drawn: Set[str] = set()
 
         def draw_gantry(gantry: Location, prev: Location = None):
@@ -310,14 +360,14 @@ class Road:
                 return
 
             x = self.lon2x(gantry.longitude, width)
-            y = window_height - self.lat2y(gantry.latitude, width)
+            y = height - self.lat2y(gantry.latitude, width)
             hex_drawn.add(gantry.hex_code)
             if create_oval:
                 tag = cv.create_oval(x - 2, y - 2, x + 2, y + 2, fill="gray")
                 cv.tag_bind(tag, "<Button-1>", lambda event: print(gantry.name))
             if prev:
                 x_prev = self.lon2x(prev.longitude, width)
-                y_prev = window_height - self.lat2y(prev.latitude, width)
+                y_prev = height - self.lat2y(prev.latitude, width)
                 cv.create_line(x_prev, y_prev, x, y, width=1, fill=road_color)
             for e in gantry.downstream:
                 draw_gantry(e.l, gantry)
