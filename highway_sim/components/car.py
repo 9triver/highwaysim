@@ -9,11 +9,9 @@ from highway_sim.data_parser_and_holder.traffic import Traffic
 from highway_sim.entity.location import TollPlaza, Location
 from highway_sim.stats import default as stats_default
 from highway_sim.util.distribution import gamma_distribution
+import highway_sim.config.args as args
 
 logger = logging.getLogger(__name__)
-
-ENABLE_3D = True
-ENABLE_2D = True
 
 
 class Car(sim.Component):
@@ -87,7 +85,7 @@ class Car(sim.Component):
             self.road.lat2y(self.prev_location.latitude, 10000),
             self.road.lat2y(self.location.latitude, 10000),
         )
-        if ENABLE_2D:
+        if args.ENABLE_2D:
             self.animate = sim.AnimateRectangle(
                 x=time2x,
                 y=time2y,
@@ -100,7 +98,7 @@ class Car(sim.Component):
                 linewidth=0,
                 fillcolor="black",
             )
-        if ENABLE_3D:
+        if args.ENABLE_3D:
             self.animate3d = sim.Animate3dBox(
                 x=time2x,
                 y=time2y,
@@ -111,9 +109,9 @@ class Car(sim.Component):
                 shaded=False,
             )
         self.hold(duration)
-        if ENABLE_2D:
+        if args.ENABLE_2D:
             self.animate.remove()
-        if ENABLE_3D:
+        if args.ENABLE_3D:
             self.animate3d.remove()
         while len(self.location.downstream) > 0:
             self.gantry_num += 1
@@ -142,7 +140,7 @@ class Car(sim.Component):
                 self.road.lat2y(self.prev_location.latitude, 10000),
                 self.road.lat2y(self.location.latitude, 10000),
             )
-            if ENABLE_2D:
+            if args.ENABLE_2D:
                 self.animate = sim.AnimateRectangle(
                     x=time2x,
                     y=time2y,
@@ -155,7 +153,7 @@ class Car(sim.Component):
                     linewidth=0,
                     fillcolor="black",
                 )
-            if ENABLE_3D:
+            if args.ENABLE_3D:
                 self.animate3d = sim.Animate3dBox(
                     x=time2x,
                     y=time2y,
@@ -166,9 +164,9 @@ class Car(sim.Component):
                     shaded=False,
                 )
             self.hold(duration)
-            if ENABLE_2D:
+            if args.ENABLE_2D:
                 self.animate.remove()
-            if ENABLE_3D:
+            if args.ENABLE_3D:
                 self.animate3d.remove()
 
         now = self.env.now()

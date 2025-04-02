@@ -11,17 +11,19 @@ from highway_sim.stats import default as stats_default
 from highway_sim.config import common
 from dataclasses import dataclass
 
-ENABLE_3D = True
-ENABLE_2D = True
-ENABLE_LOG = True
+import highway_sim.config.args as args
+import highway_sim.config.parser as parser
 
 # 需要添加__name__，否则sphinx会尝试运行main，然后报错
 if __name__ == "__main__":
-    if ENABLE_LOG:
+    parser.Parser()
+    # print(ENABLE_LOG, LOG_LEVEL, LOG_FILE, ENABLE_2D, ENABLE_3D)
+
+    if args.ENABLE_LOG:
         logging.basicConfig(
-            level=logging.INFO,
+            level=args.LOG_LEVEL,
             format="%(message)s",
-            filename="../statistics.log",
+            filename=args.LOG_FILE,
             filemode="w",
         )
         logger = logging.getLogger(__name__)
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     g_simulation_height_px = 1000
     env.width(g_simulation_width_px)
     env.height(g_simulation_height_px)
-    if ENABLE_3D:
+    if args.ENABLE_3D:
         env.width3d(g_simulation_width_px)
         env.height3d(g_simulation_height_px)
         env.position3d((500 + 1000, 0))
@@ -86,19 +88,16 @@ if __name__ == "__main__":
         # field_of_view_y=55.5556,
     )
 
-    if ENABLE_2D:
+    if args.ENABLE_2D:
         env.video_close()
         env.show_fps(True)
         env.show_time(True)
         env.show_menu_buttons(True)
-        env.camera_auto_print(True)
         env.animate(True)
-    else:
-        env.animate(False)
-    if ENABLE_3D:
+    if args.ENABLE_3D:
+        env.camera_auto_print(True)
         env.animate3d(True)
-    else:
-        env.animate(False)
+        # 注意这里，不能调用env.animate3d(False)，不设置就好
     env.speed(3000)
 
     ###
@@ -114,7 +113,7 @@ if __name__ == "__main__":
 
 
     ###
-    if ENABLE_2D:
+    if args.ENABLE_2D:
         g_map_width = 500
         g_map_height = 500
         g_map_resolution = g_map_width
@@ -269,7 +268,7 @@ if __name__ == "__main__":
 
 
     # visualization
-    if ENABLE_2D:
+    if args.ENABLE_2D:
         map_window = tkinter.Toplevel()
         map_window.geometry(f"{g_map_width}x{g_map_height}+0+0")
         g_map_cv = tkinter.Canvas(map_window, bg="white")
@@ -292,13 +291,11 @@ if __name__ == "__main__":
             g_simulation_cv, g_simulation_width_px, g_simulation_height_px, "red", False
         )
 
-    # map_window.mainloop()
-
-    ###
+        # map_window.mainloop()
 
     env.run(common.DAY_MILLISECOND * 1)
 
-    if ENABLE_LOG:
+    if args.ENABLE_LOG:
         end_time = time.time()
         logger.info("spend %fs", end_time - start_time)
         stats_default.record(logger)
