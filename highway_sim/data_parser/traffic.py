@@ -1,6 +1,18 @@
 """
-负责解析并存储交通流量相关数据
-使用Parser类解析交通流量数据，并将结果存储在Traffic类中
+高速公路交通流量数据解析与建模模块
+
+功能概述：
+本模块负责解析小时级交通流量分布数据，建立时间间隔模型用于车辆生成调度。
+包含Traffic交通流量数据容器和Parser数据解析器两个核心类。
+
+数据解析来源：
+hourly_traffic_distribution.csv - 小时级车辆到达间隔时间分布数据
+
+使用示例：
+```
+parser = Parser(traffic)
+parser.parse()
+```
 """
 
 from __future__ import annotations

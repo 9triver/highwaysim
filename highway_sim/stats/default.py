@@ -129,7 +129,7 @@ def entry_hex_info(h: str, logger: logging.Logger) -> None:
 
 def record(logger: logging.Logger) -> None:
     """
-    以info级别输出所有统计信息，可以对数据进行一些操作
+    以info级别输出记录的所有统计信息，可选：对数据进行额外操作
 
     Args:
         logger (logging.Logger): 日志记录器

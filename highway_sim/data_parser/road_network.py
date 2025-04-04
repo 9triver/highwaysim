@@ -8,8 +8,41 @@
 #
 # gantry.xlxs里面有重复数据,需要删除,否则导致出现多个hex相同但id不同的对象
 """
-负责解析和存储高速公路网络和路径选择相关数据
-使用Parser类解析数据，并将数据存储在RoadNetwork类中
+高速公路路网数据解析与建模模块
+
+功能概述：
+本模块负责解析高速公路基础数据文件，构建包含门架、收费站及其拓扑关系的路网模型，提供路径概率计算和地理坐标映射功能。
+主要包含RoadNetwork道路网络数据容器类和Parser数据解析器类。
+
+数据解析来源：
+1. gantry.xlsx      - 门架基础信息（经纬度、Hex编码、类型等）
+2. charge.xlsx      - 收费站信息（出入口类型、关联门架等）
+3. relation.xlsx    - 门架上下游拓扑关系
+4. hourly_entry_count.csv - 入口车流量统计，用于解析入口选择概率
+5. driver_normal.csv - 路径选择概率分布，用于解析下游门架选择概率
+
+路网建模逻辑：
+    1. 空间映射体系：
+        - 通过min/max经纬度计算坐标映射比例
+        - lon2x()/lat2y()方法实现经纬度到画布坐标的线性映射
+        - draw()方法实现基于Tkinter的可视化绘制
+
+    2. 拓扑关系构建：
+        - 解析relation.xlsx建立门架上下游关系
+        - 使用LocationWithProb对象存储带概率的下游节点
+        - 入口收费站通过entrances_with_prob实现按流量加权随机
+
+    3. 数据清洗规则：
+        - 过滤状态非"运行"的收费站
+        - 移除无有效下游的入口节点
+        - 处理重复门架Hex编码(保留首次出现实例)
+
+使用示例：
+```
+parser = Parser(road_network)
+parser.parse()
+road_network.draw(canvas, 800, 600) # 在800x600画布上绘制路网
+```
 """
 
 from __future__ import annotations

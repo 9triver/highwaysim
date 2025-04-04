@@ -1,9 +1,32 @@
 """
-Car类用于模拟高速公路上的车辆行为，继承自Salabim的Component类。
-主要功能包括：
-- 运行逻辑仿真：模拟车辆的行驶时间和路径选择
-- 动画渲染：支持2D/3D模式下车辆移动的实时渲染
-- 数据统计：记录车辆通过的门架数量、总行程时间等信息
+高速公路车辆行为仿真模块
+
+功能概述：
+本模块实现车辆在高速公路路网中的完整行为模拟，包含路径选择、行驶时间计算、可视化渲染及数据采集功能。
+Car类作为仿真核心组件，控制单个车辆从入口到出口的全生命周期行为。
+
+核心算法逻辑：
+    1. 路径选择机制：
+        - 基于Gamma分布生成门架间行驶时间（get_duration方法）
+        - 使用road_network的拓扑关系获取下游节点（get_next_location方法）
+        - 路径概率数据来自路网解析结果
+
+    2. 动画渲染逻辑：
+        - 2D/3D同步渲染：通过sim.interpolate实现经纬度到画布坐标的实时映射
+        - 动态位置计算：time2x/time2y lambda函数实现平滑移动插值
+        - 资源管理：remove_animation方法确保组件释放
+
+    3. 统计指标体系：
+        - 门架通行时间（gantry_time_info）
+        - 总行程时间（total_time_info）
+        - 出入口时段分布（entry/exit_hour_info）
+        - 路径节点计数（num_passed_info）
+
+
+使用示例：
+```
+car = Car(road_network=rn, traffic=tf, entrance=entrance)
+```
 """
 
 import logging
