@@ -15,14 +15,14 @@ class Traffic:
     def __init__(self):
         self.hour_2_interval_ms: Dict[int, float] = {}
 
-    def parse(self) -> None:
-        """
-        解析流量相关数据，如入口的流量分布，并存储
 
-        Returns:
+class Parser:
+    """
+    Parser类用于解析交通流量数据
+    """
 
-        """
-        self.__parse_traffic_distribution()
+    def __init__(self, traffic: Traffic):
+        self.traffic = traffic
 
     def __parse_traffic_distribution(self) -> None:
         df = pd.read_csv(
@@ -34,4 +34,13 @@ class Traffic:
         for row in [x[1] for x in df.iterrows()]:
             hour = int(row.iloc[0])
             interval = float(row.iloc[2])
-            self.hour_2_interval_ms[hour] = interval
+            self.traffic.hour_2_interval_ms[hour] = interval
+
+    def parse(self) -> None:
+        """
+        解析交通流量数据
+
+        Returns:
+
+        """
+        self.__parse_traffic_distribution()
