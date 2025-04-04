@@ -1,6 +1,8 @@
 """
 启动模块
+该模块负责初始化日志记录器、设置动画参数、处理鼠标事件以及创建地图窗口等功能
 """
+# run `export PYTHONPATH=/extend/school/projects/highwaysim:$PYTHONPATH` before running this file
 
 import logging
 import time

@@ -8,9 +8,8 @@
 #
 # gantry.xlxs里面有重复数据,需要删除,否则导致出现多个hex相同但id不同的对象
 """
+负责解析和存储高速公路网络和路径选择相关数据
 使用Parser类解析数据，并将数据存储在RoadNetwork类中
-解析的数据为门架位置，门架间拓扑关系，道路表示为有连接关系的两条门架间的直线
-
 """
 
 from __future__ import annotations

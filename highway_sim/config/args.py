@@ -1,3 +1,7 @@
+"""
+配置常量及解析器
+"""
+
 # log
 import logging
 import argparse
@@ -51,7 +55,7 @@ class Parser:
     @classmethod
     def __update_config(cls, args: argparse.Namespace) -> None:
         global ENABLE_LOG, LOG_LEVEL, LOG_FILE, ENABLE_2D, ENABLE_3D
-        
+
         if args.log:
             ENABLE_LOG = True
         else:

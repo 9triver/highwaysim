@@ -1,3 +1,7 @@
+"""
+默认统计信息模块
+"""
+
 import logging
 from typing import List, Dict
 

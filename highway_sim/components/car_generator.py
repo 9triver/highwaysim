@@ -1,3 +1,10 @@
+"""
+CarGenerator用于模拟车辆生成过程，继承自salabim的Component类。
+主要功能：
+- 车辆生成：根据统计数据随机选择一个入口位置，并按照分布生成随机间隔
+- 数据统计：记录车辆生成的时间和位置
+"""
+
 import logging
 import random
 

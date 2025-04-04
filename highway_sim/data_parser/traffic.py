@@ -1,3 +1,8 @@
+"""
+负责解析并存储交通流量相关数据
+使用Parser类解析交通流量数据，并将结果存储在Traffic类中
+"""
+
 from __future__ import annotations
 
 from typing import Dict

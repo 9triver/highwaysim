@@ -1,3 +1,7 @@
+"""
+位置类,用于表示高速公路上的位置,包括收费站,门架等
+"""
+
 from __future__ import annotations
 
 import enum
