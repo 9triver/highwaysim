@@ -24,21 +24,22 @@
     - util/            : 工具模块
         - distribution.py: 概率分布工具
 
-运行方式：
-export PYTHONPATH=/extend/school/projects/highwaysim:$PYTHONPATH
-cd hiway_sim
-python main.py
+运行方式::
+
+    export PYTHONPATH=/extend/school/projects/highwaysim:$PYTHONPATH
+    cd hiway_sim
+    python main.py
 
 关键启动参数说明:
---log        : 启用日志记录（默认输出到../log/statistics.log）
---log-level  : 设置日志级别（DEBUG/INFO/WARNING/ERROR/CRITICAL）
---d2         : 启用2D可视化
---d3         : 启用3D可视化
+    - --log        : 启用日志记录（默认输出到../log/statistics.log）
+    - --log-level  : 设置日志级别（DEBUG/INFO/WARNING/ERROR/CRITICAL）
+    - --d2         : 启用2D可视化
+    - --d3         : 启用3D可视化
 
 典型工作流程:
-1. 解析路网数据和交通流量数据
-2. 初始化车辆生成器和仿真环境
-3. 运行离散事件仿真
-4. 收集通行时间和路径选择数据
-5. 输出统计结果和可视化动画
+    1. 解析路网数据和交通流量数据
+    2. 初始化车辆生成器和仿真环境
+    3. 运行离散事件仿真
+    4. 收集通行时间和路径选择数据
+    5. 输出统计结果和可视化动画
 """

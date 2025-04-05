@@ -15,11 +15,11 @@
 主要包含RoadNetwork道路网络数据容器类和Parser数据解析器类。
 
 数据解析来源：
-1. gantry.xlsx      - 门架基础信息（经纬度、Hex编码、类型等）
-2. charge.xlsx      - 收费站信息（出入口类型、关联门架等）
-3. relation.xlsx    - 门架上下游拓扑关系
-4. hourly_entry_count.csv - 入口车流量统计，用于解析入口选择概率
-5. driver_normal.csv - 路径选择概率分布，用于解析下游门架选择概率
+    1. gantry.xlsx      - 门架基础信息（经纬度、Hex编码、类型等）
+    2. charge.xlsx      - 收费站信息（出入口类型、关联门架等）
+    3. relation.xlsx    - 门架上下游拓扑关系
+    4. hourly_entry_count.csv - 入口车流量统计，用于解析入口选择概率
+    5. driver_normal.csv - 路径选择概率分布，用于解析下游门架选择概率
 
 路网建模逻辑：
     1. 空间映射体系：
@@ -37,12 +37,11 @@
         - 移除无有效下游的入口节点
         - 处理重复门架Hex编码(保留首次出现实例)
 
-使用示例：
-```
-parser = Parser(road_network)
-parser.parse()
-road_network.draw(canvas, 800, 600) # 在800x600画布上绘制路网
-```
+使用示例::
+
+    parser = Parser(road_network)
+    parser.parse()
+    road_network.draw(canvas, 800, 600) # 在800x600画布上绘制路网
 """
 
 from __future__ import annotations

@@ -6,17 +6,15 @@
 CarGenerator类继承salabim.Component，实现离散事件驱动的车辆生成逻辑。
 
 执行流程：
-while True:
-1. 计算当前仿真时间对应的小时段
-2. 获取相邻3个时段的平均间隔
-3. 生成带随机波动的实际间隔
-4. 创建Car实例并加入仿真队列
-5. 等待计算出的时间间隔
+    1. 计算当前仿真时间对应的小时段
+    2. 获取相邻3个时段的平均间隔
+    3. 生成带随机波动的实际间隔
+    4. 创建Car实例并加入仿真队列
+    5. 等待计算出的时间间隔
 
-使用示例：
-```
-generator = CarGenerator(road_network=rn, traffic=tf)
-```
+使用示例::
+
+    generator = CarGenerator(road_network=rn, traffic=tf)
 """
 
 import logging

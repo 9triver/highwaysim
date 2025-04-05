@@ -23,10 +23,9 @@ Car类作为仿真核心组件，控制单个车辆从入口到出口的全生�
         - 路径节点计数（num_passed_info）
 
 
-使用示例：
-```
-car = Car(road_network=rn, traffic=tf, entrance=entrance)
-```
+使用示例::
+
+    car = Car(road_network=rn, traffic=tf, entrance=entrance)
 """
 
 import logging
